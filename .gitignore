@@ -129,3 +129,8 @@ venv.bak/
 # Kubernetes secrets
 secrets.yaml
 *-secret.yaml
+
+# claude directory
+.claude/
+AI_INSTRUCTIONS.md
+prompt.md

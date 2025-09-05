@@ -1,0 +1,96 @@
+version: '3.8'
+
+services:
+  # Data Ingestion Service
+  data-ingestion:
+    build: ./services/data-ingestion
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/stockdata
+    depends_on:
+      - postgres
+      - redis
+
+  # Data Processing Service
+  data-processing:
+    build: ./services/data-processing
+    ports:
+      - "3002:3000"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/stockdata
+    depends_on:
+      - postgres
+      - redis
+
+  # Market Analysis Service
+  market-analysis:
+    build: ./services/market-analysis
+    ports:
+      - "3003:3000"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/stockdata
+    depends_on:
+      - postgres
+
+  # Notification Service
+  notification-service:
+    build: ./services/notification-service
+    ports:
+      - "3004:3000"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - redis
+
+  # API Gateway
+  api-gateway:
+    build: ./services/api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - data-ingestion
+      - data-processing
+      - market-analysis
+      - notification-service
+
+  # Database
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=stockdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Redis for caching and message queuing
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  # Monitoring
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus:/etc/prometheus
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3010:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+
+volumes:
+  postgres_data:

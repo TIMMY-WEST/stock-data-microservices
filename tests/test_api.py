@@ -50,7 +50,7 @@ class TestMainRoutes:
         """インデックスページのテスト"""
         response = client.get('/')
         assert response.status_code == 200
-        assert b'株価データ取得システム' in response.data
+        assert '株価データ取得システム'.encode('utf-8') in response.data
     
     def test_health_check(self, client):
         """ヘルスチェックのテスト"""

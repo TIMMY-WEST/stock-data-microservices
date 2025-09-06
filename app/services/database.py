@@ -1,7 +1,7 @@
 from typing import Dict, List, Optional
 from app import db
 from app.models.stock_data import StockData
-from datetime import datetime
+from datetime import datetime, UTC
 from sqlalchemy import desc
 
 
@@ -23,7 +23,7 @@ class DatabaseService:
                 existing.timezone = stock_data['timezone']
                 existing.exchange = stock_data['exchange']
                 existing.historical_data = stock_data['historical_data']
-                existing.updated_at = datetime.utcnow()
+                existing.updated_at = datetime.now(UTC)
             else:
                 # 新規データを作成
                 new_stock = StockData(

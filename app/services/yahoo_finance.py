@@ -1,6 +1,6 @@
 import uuid
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import List, Dict, Optional
 
 
@@ -43,7 +43,7 @@ class YahooFinanceService:
                 'market_state': meta.get('marketState', 'UNKNOWN'),
                 'timezone': meta.get('timezone', 'JST'),
                 'exchange': meta.get('exchangeName', 'Unknown'),
-                'fetched_at': datetime.utcnow().isoformat(),
+                'fetched_at': datetime.now(UTC).isoformat(),
                 'historical_data': {
                     'timestamps': result.get('timestamp', []),
                     'open': quotes.get('open', []),

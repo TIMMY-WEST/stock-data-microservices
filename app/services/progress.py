@@ -1,5 +1,5 @@
 from typing import Dict, Optional
-from datetime import datetime
+from datetime import datetime, UTC
 import json
 import os
 
@@ -38,8 +38,8 @@ class ProgressService:
             'total': total_items,
             'current_item': 0,
             'message': 'タスクを開始しました',
-            'created_at': datetime.utcnow().isoformat(),
-            'updated_at': datetime.utcnow().isoformat(),
+            'created_at': datetime.now(UTC).isoformat(),
+            'updated_at': datetime.now(UTC).isoformat(),
             'completed_at': None,
             'error': None,
             'details': []
@@ -55,11 +55,11 @@ class ProgressService:
         task['current_item'] = current_item
         task['progress'] = int((current_item / task['total']) * 100)
         task['message'] = message or f"{current_item}/{task['total']} 完了"
-        task['updated_at'] = datetime.utcnow().isoformat()
+        task['updated_at'] = datetime.now(UTC).isoformat()
         
         # 詳細履歴を追加
         task['details'].append({
-            'timestamp': datetime.utcnow().isoformat(),
+            'timestamp': datetime.now(UTC).isoformat(),
             'message': message,
             'item': current_item
         })
@@ -80,8 +80,8 @@ class ProgressService:
         task['status'] = 'completed'
         task['progress'] = 100
         task['message'] = 'タスクが完了しました'
-        task['completed_at'] = datetime.utcnow().isoformat()
-        task['updated_at'] = datetime.utcnow().isoformat()
+        task['completed_at'] = datetime.now(UTC).isoformat()
+        task['updated_at'] = datetime.now(UTC).isoformat()
         
         self._save_tasks()
         return True
@@ -95,7 +95,7 @@ class ProgressService:
         task['status'] = 'error'
         task['message'] = 'エラーが発生しました'
         task['error'] = error_message
-        task['updated_at'] = datetime.utcnow().isoformat()
+        task['updated_at'] = datetime.now(UTC).isoformat()
         
         self._save_tasks()
         return True

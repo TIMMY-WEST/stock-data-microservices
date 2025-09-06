@@ -28,13 +28,13 @@
     "total": 10,
     "current_item": 3,
     "message": "3件完了",
-    "created_at": "2025-09-06T05:00:26.075438+00:00",
-    "updated_at": "2025-09-06T05:00:26.076444+00:00",
+    "created_at": "2025-09-06T23:30:31.273969+00:00",
+    "updated_at": "2025-09-06T23:30:31.274975+00:00",
     "completed_at": null,
     "error": null,
     "details": [
       {
-        "timestamp": "2025-09-06T05:00:26.076444+00:00",
+        "timestamp": "2025-09-06T23:30:31.274975+00:00",
         "message": "3件完了",
         "item": 3
       }
@@ -46,9 +46,9 @@
     "total": 5,
     "current_item": 0,
     "message": "タスクが完了しました",
-    "created_at": "2025-09-06T05:00:26.079444+00:00",
-    "updated_at": "2025-09-06T05:00:26.081538+00:00",
-    "completed_at": "2025-09-06T05:00:26.081538+00:00",
+    "created_at": "2025-09-06T23:30:31.278484+00:00",
+    "updated_at": "2025-09-06T23:30:31.279484+00:00",
+    "completed_at": "2025-09-06T23:30:31.279484+00:00",
     "error": null,
     "details": []
   },
@@ -58,8 +58,8 @@
     "total": 5,
     "current_item": 0,
     "message": "エラーが発生しました",
-    "created_at": "2025-09-06T05:00:26.084537+00:00",
-    "updated_at": "2025-09-06T05:00:26.085538+00:00",
+    "created_at": "2025-09-06T23:30:31.282484+00:00",
+    "updated_at": "2025-09-06T23:30:31.284484+00:00",
     "completed_at": null,
     "error": "テストエラー",
     "details": []
@@ -82,6 +82,75 @@
       },
       {
         "timestamp": "2025-09-06T05:00:25.972738+00:00",
+        "message": "SAMPLE.T データ取得失敗",
+        "item": 2
+      }
+    ]
+  },
+  "0cada17a-1867-41ea-be2c-84e04585b271": {
+    "status": "completed",
+    "progress": 100,
+    "total": 2,
+    "current_item": 2,
+    "message": "タスクが完了しました",
+    "created_at": "2025-09-06T05:02:11.030895+00:00",
+    "updated_at": "2025-09-06T05:02:11.709454+00:00",
+    "completed_at": "2025-09-06T05:02:11.709454+00:00",
+    "error": null,
+    "details": [
+      {
+        "timestamp": "2025-09-06T05:02:11.384141+00:00",
+        "message": "TEST.T データ取得失敗",
+        "item": 1
+      },
+      {
+        "timestamp": "2025-09-06T05:02:11.707453+00:00",
+        "message": "SAMPLE.T データ取得失敗",
+        "item": 2
+      }
+    ]
+  },
+  "a1e3e301-11ae-438d-8c6b-b085215fe7ee": {
+    "status": "completed",
+    "progress": 100,
+    "total": 2,
+    "current_item": 2,
+    "message": "タスクが完了しました",
+    "created_at": "2025-09-06T23:30:16.639819+00:00",
+    "updated_at": "2025-09-06T23:30:17.309458+00:00",
+    "completed_at": "2025-09-06T23:30:17.309458+00:00",
+    "error": null,
+    "details": [
+      {
+        "timestamp": "2025-09-06T23:30:16.982851+00:00",
+        "message": "TEST.T データ取得失敗",
+        "item": 1
+      },
+      {
+        "timestamp": "2025-09-06T23:30:17.306458+00:00",
+        "message": "SAMPLE.T データ取得失敗",
+        "item": 2
+      }
+    ]
+  },
+  "e8310903-b234-4fef-a263-6139aef74c4a": {
+    "status": "completed",
+    "progress": 100,
+    "total": 2,
+    "current_item": 2,
+    "message": "タスクが完了しました",
+    "created_at": "2025-09-06T23:30:30.503328+00:00",
+    "updated_at": "2025-09-06T23:30:31.163695+00:00",
+    "completed_at": "2025-09-06T23:30:31.163695+00:00",
+    "error": null,
+    "details": [
+      {
+        "timestamp": "2025-09-06T23:30:30.845703+00:00",
+        "message": "TEST.T データ取得失敗",
+        "item": 1
+      },
+      {
+        "timestamp": "2025-09-06T23:30:31.161695+00:00",
         "message": "SAMPLE.T データ取得失敗",
         "item": 2
       }

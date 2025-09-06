@@ -1,96 +1,72 @@
 version: '3.8'
 
 services:
-  # Data Ingestion Service
-  data-ingestion:
-    build: ./services/data-ingestion
-    ports:
-      - "3001:3000"
-    environment:
-      - NODE_ENV=development
-      - DATABASE_URL=postgresql://postgres:password@postgres:5432/stockdata
-    depends_on:
-      - postgres
-      - redis
-
-  # Data Processing Service
-  data-processing:
-    build: ./services/data-processing
-    ports:
-      - "3002:3000"
-    environment:
-      - NODE_ENV=development
-      - DATABASE_URL=postgresql://postgres:password@postgres:5432/stockdata
-    depends_on:
-      - postgres
-      - redis
-
-  # Market Analysis Service
-  market-analysis:
-    build: ./services/market-analysis
-    ports:
-      - "3003:3000"
-    environment:
-      - NODE_ENV=development
-      - DATABASE_URL=postgresql://postgres:password@postgres:5432/stockdata
-    depends_on:
-      - postgres
-
-  # Notification Service
-  notification-service:
-    build: ./services/notification-service
-    ports:
-      - "3004:3000"
-    environment:
-      - NODE_ENV=development
-    depends_on:
-      - redis
-
-  # API Gateway
-  api-gateway:
-    build: ./services/api-gateway
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=development
-    depends_on:
-      - data-ingestion
-      - data-processing
-      - market-analysis
-      - notification-service
-
-  # Database
+  # PostgreSQL Database
   postgres:
     image: postgres:15
+    container_name: stock_postgres
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=stockdata
+      POSTGRES_DB: stock_db
+      POSTGRES_USER: stock_user
+      POSTGRES_PASSWORD: stock_password
+      TZ: Asia/Tokyo
+      PGTZ: Asia/Tokyo
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stock_user -d stock_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - stock_network
 
-  # Redis for caching and message queuing
+  # Redis for caching and task queuing
   redis:
     image: redis:7-alpine
+    container_name: stock_redis
     ports:
       - "6379:6379"
-
-  # Monitoring
-  prometheus:
-    image: prom/prometheus
-    ports:
-      - "9090:9090"
     volumes:
-      - ./monitoring/prometheus:/etc/prometheus
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: redis-server --appendonly yes
+    networks:
+      - stock_network
 
-  grafana:
-    image: grafana/grafana
-    ports:
-      - "3010:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+  # 将来のアプリケーションコンテナ用（開発時はコメントアウト）
+  # app:
+  #   build: .
+  #   container_name: stock_app
+  #   ports:
+  #     - "8000:8000"
+  #   environment:
+  #     DATABASE_URL: postgresql://stock_user:stock_password@postgres:5432/stock_db
+  #     REDIS_URL: redis://redis:6379/0
+  #     FLASK_ENV: production
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   networks:
+  #     - stock_network
+
+networks:
+  stock_network:
+    driver: bridge
 
 volumes:
   postgres_data:
+    driver: local
+  redis_data:
+    driver: local

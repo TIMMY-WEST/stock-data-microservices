@@ -1,0 +1,142 @@
+/* カスタムスタイル - macOS風デザイン */
+
+/* スクロールバーのカスタマイズ */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+/* macOS風のボタンアニメーション */
+button {
+    transition: all 0.2s ease-in-out;
+}
+
+button:hover {
+    transform: translateY(-1px);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+/* カード要素のホバーエフェクト */
+.hover\:shadow-md:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transform: translateY(-2px);
+    transition: all 0.2s ease-in-out;
+}
+
+/* プログレスバーのアニメーション */
+.progress-bar {
+    transition: width 0.3s ease-in-out;
+}
+
+/* ローディングスピナー */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* フォーカス状態の改善 */
+input:focus,
+textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* 成功・エラーメッセージ */
+.alert {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    border: 1px solid;
+}
+
+.alert-success {
+    background-color: #f0f9ff;
+    color: #065f46;
+    border-color: #a7f3d0;
+}
+
+.alert-error {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border-color: #fecaca;
+}
+
+.alert-info {
+    background-color: #f0f9ff;
+    color: #1e40af;
+    border-color: #bfdbfe;
+}
+
+/* データカードのレスポンシブ改善 */
+@media (max-width: 640px) {
+    .grid-cols-1 {
+        gap: 12px;
+    }
+    
+    .px-4 {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+}
+
+/* ツールチップスタイル */
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: #555;
+    color: white;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -60px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* ダークモード対応（将来的な拡張用） */
+@media (prefers-color-scheme: dark) {
+    .dark-mode {
+        background-color: #1f2937;
+        color: #f9fafb;
+    }
+}

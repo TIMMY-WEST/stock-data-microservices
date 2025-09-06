@@ -1,5 +1,5 @@
 from app import db
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from sqlalchemy.dialects.postgresql import JSON
 
 
@@ -28,8 +28,8 @@ class StockData(db.Model):
     historical_data = db.Column(JSON, nullable=True)
     
     # タイムスタンプ
-    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(UTC))
-    updated_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     def __repr__(self):
         return f'<StockData {self.symbol}: {self.company_name}>'
@@ -69,7 +69,7 @@ class FetchLog(db.Model):
     error_detail = db.Column(db.Text, nullable=True)
     
     # 実行時間
-    started_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(UTC))
+    started_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     completed_at = db.Column(db.DateTime, nullable=True)
     
     # 取得データへのリンク

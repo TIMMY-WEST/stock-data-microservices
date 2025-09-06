@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>株価データ取得システム</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Alpine.js CDN -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- カスタムCSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div id="app" x-data="stockApp()" x-init="init()">
+        <!-- ヘッダー -->
+        <header class="bg-white shadow-sm border-b">
+            <div class="max-w-7xl mx-auto px-4 py-6">
+                <h1 class="text-3xl font-bold text-gray-900">📈 株価データ取得システム</h1>
+                <p class="text-gray-600 mt-2">Yahoo Finance APIを使用した株価データ収集ツール</p>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 py-8">
+            <!-- データ取得セクション -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">🔍 株価データ取得</h2>
+                
+                <form @submit.prevent="fetchData" class="mb-4">
+                    <div class="flex gap-4 items-end">
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                株式シンボル（カンマ区切りで複数指定可能）
+                            </label>
+                            <input 
+                                type="text" 
+                                x-model="symbolInput"
+                                placeholder="例: 7203.T, AAPL, TSLA, 6758.T"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                required
+                            >
+                        </div>
+                        <button 
+                            type="submit"
+                            :disabled="isLoading"
+                            class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+                        >
+                            <span x-show="!isLoading">📊 データ取得開始</span>
+                            <span x-show="isLoading">🔄 取得中...</span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- プログレス表示 -->
+                <div x-show="currentTask" class="mt-4 p-4 bg-blue-50 rounded-md">
+                    <h3 class="font-medium text-blue-800">取得状況</h3>
+                    <div class="mt-2">
+                        <div class="flex justify-between text-sm text-blue-700">
+                            <span x-text="currentTask?.message"></span>
+                            <span x-text="`${currentTask?.progress || 0}%`"></span>
+                        </div>
+                        <div class="mt-1 bg-blue-200 rounded-full h-2">
+                            <div 
+                                class="bg-blue-600 rounded-full h-2 transition-all duration-300"
+                                :style="`width: ${currentTask?.progress || 0}%`"
+                            ></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- データ一覧セクション -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold text-gray-800">📋 取得済みデータ</h2>
+                    <button 
+                        @click="refreshData"
+                        class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2"
+                    >
+                        🔄 更新
+                    </button>
+                </div>
+
+                <!-- ローディング状態 -->
+                <div x-show="isLoadingData" class="text-center py-8">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <p class="text-gray-600 mt-2">データを読み込み中...</p>
+                </div>
+
+                <!-- データグリッド -->
+                <div x-show="!isLoadingData && stocks.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <template x-for="stock in stocks" :key="stock.id">
+                        <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-bold text-lg" x-text="stock.symbol"></h3>
+                                <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800" x-text="stock.market_state"></span>
+                            </div>
+                            <p class="text-gray-600 text-sm mb-3" x-text="stock.company_name"></p>
+                            
+                            <div class="space-y-2">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-700">現在価格</span>
+                                    <span class="font-semibold" x-text="`${stock.current_price} ${stock.currency}`"></span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-700">取引所</span>
+                                    <span x-text="stock.exchange"></span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-500">更新日時</span>
+                                    <span x-text="formatDate(stock.updated_at)"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- データなし -->
+                <div x-show="!isLoadingData && stocks.length === 0" class="text-center py-8 text-gray-500">
+                    📊 データがまだありません。上記のフォームから株価データを取得してください。
+                </div>
+
+                <!-- ページネーション -->
+                <div x-show="pagination && pagination.pages > 1" class="mt-6 flex justify-center">
+                    <nav class="flex gap-2">
+                        <button 
+                            @click="loadPage(pagination.page - 1)"
+                            :disabled="pagination.page <= 1"
+                            class="px-3 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            ← 前
+                        </button>
+                        
+                        <template x-for="page in getPageNumbers()" :key="page">
+                            <button 
+                                @click="loadPage(page)"
+                                :class="page === pagination.page ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'"
+                                class="px-3 py-2 border border-gray-300 rounded-md"
+                                x-text="page"
+                            ></button>
+                        </template>
+                        
+                        <button 
+                            @click="loadPage(pagination.page + 1)"
+                            :disabled="pagination.page >= pagination.pages"
+                            class="px-3 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            次 →
+                        </button>
+                    </nav>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- カスタムJS -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

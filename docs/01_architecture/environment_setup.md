@@ -4,7 +4,7 @@
 
 ### 1.1 前提条件
 **⚠️ 重要**: 以下の環境が構築済みであることが前提です
-- **Python**: 3.11+ がインストール済み
+- **Python**: 3.12 がインストール済み
 - **Claude Desktop**: Claude Desktop アプリがインストール済み
 - **開発エディタ**: VS Code等の開発環境が準備済み
 
@@ -103,7 +103,7 @@ stock-data-app/
 
 #### Python環境確認
 ```bash
-# Python バージョン確認（3.11+ が必要）
+# Python バージョン確認（3.12 が必要）
 python --version
 # または
 python3 --version
@@ -533,8 +533,6 @@ gunicorn==21.2.0
 # 開発・テスト用
 pytest==7.4.3
 pytest-flask==1.3.0
-black==23.12.0
-flake8==6.1.0
 ```
 
 ### 5.2 docker-compose.yml
@@ -694,7 +692,7 @@ REM 0. 前提条件確認
 echo 🔍 前提条件を確認中...
 python --version >nul 2>&1
 if errorlevel 1 (
-    echo ❌ Python 3.11+ が必要です
+    echo ❌ Python 3.12 が必要です
     pause
     exit /b 1
 )
@@ -869,7 +867,9 @@ pytest tests\ -v
 REM コードスタイルチェック
 echo 📝 コードスタイルをチェック中...
 black --check app\ tests\
-flake8 app\ tests\ --max-line-length=88 --extend-ignore=E203,W503
+isort --check-only app\ tests\
+flake8 app\ tests\
+mypy app\ tests\
 
 echo ✅ 全てのテストが完了しました！
 pause

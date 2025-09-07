@@ -27,11 +27,12 @@
 ### 2.1 必要ソフトウェア（必須）
 | ソフトウェア | バージョン | 用途 |
 |-------------|-----------|------|
-| Python | 3.11+ | バックエンド開発 |
+| Python | 3.12 | バックエンド開発 |
 | Git | 2.30+ | バージョン管理 |
 | Docker | 20.0+ | データベースコンテナ |
 | Docker Compose | 2.0+ | コンテナオーケストレーション |
 | Node.js | 18+ | MCP Server実行環境 |
+| mypy | 最新版 | Python 静的型チェック |
 
 ### 2.2 開発環境構築手順
 1. **Python仮想環境の使用必須**
@@ -56,9 +57,24 @@
 ```json
 {
     "python.interpreter": "./venv/bin/python",
-    "python.formatting.provider": "black",
-    "python.formatting.blackArgs": ["--line-length", "88"],
-    "python.linting.flake8Enabled": true
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        }
+    },
+    "python.linting.enabled": true,
+    "python.linting.flake8Enabled": true,
+    "black-formatter.args": ["--line-length=88"],
+    "python.linting.flake8Args": ["--max-line-length=88", "--extend-ignore=E203,W503"],
+    "python.linting.mypyEnabled": true,
+    "python.linting.mypyArgs": ["--ignore-missing-imports", "--show-error-codes"],
+    "isort.args": ["--profile", "black", "--line-length", "88"],
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.autoFormatStrings": true,
+    "python.analysis.completeFunctionParens": true
 }
 ```
 
@@ -66,7 +82,26 @@
 - ms-python.python
 - ms-python.black-formatter
 - ms-python.flake8
+- ms-python.isort
 - bradlc.vscode-tailwindcss
+
+### 2.4 mypyについて
+
+**mypyとは:**
+Pythonの静的型チェッカーで、型ヒントを使用してコードの型安全性を検証します。
+
+**主な機能:**
+- **型チェック**: 静的型解析によるエラー検出
+- **型ヒント検証**: 関数・変数の型注釈の妥当性確認
+- **エラー検出**: 型関連の潜在的なバグの早期発見
+- **段階的型付け**: 既存コードへの段階的な型注釈追加をサポート
+- **設定可能**: プロジェクトに応じた詳細な設定が可能
+
+**本プロジェクトでの使用目的:**
+1. **品質向上**: 実行前の型エラー検出
+2. **保守性向上**: 型安全性によるリファクタリングの安全性確保
+3. **チーム開発支援**: 一貫した型チェック基準の提供
+4. **ドキュメント化**: 型注釈による自己文書化コード
 
 ## 3. ブランチ戦略・Git運用ルール
 
@@ -175,8 +210,10 @@ fix(db): resolve connection issues #125 #126
 
 ### 4.1 Python コーディング規約
 - **フォーマット**: Black (88文字制限)
-- **リンター**: Flake8
-- **型ヒント**: 関数の引数・戻り値に型注釈を使用
+- **リンター**: flake8
+- **型チェック**: mypy
+- **インポート整理**: isort
+- **型ヒント**: 関数の引数・戻り値に型注釈を使用（mypyで静的型チェック）
 - **docstring**: 関数・クラスにはGoogle形式のdocstringを記述
 
 ### 4.2 コード品質基準
@@ -604,9 +641,10 @@ pytest tests/ -v
 
 # コードフォーマット
 black app/ tests/
-
-# リンターチェック
+isort app/ tests/
 flake8 app/ tests/
+mypy app/ tests/
+
 
 # データベースマイグレーション
 flask db migrate -m "migration message"

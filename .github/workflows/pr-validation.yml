@@ -69,10 +69,10 @@ jobs:
         
     - name: Check code formatting and linting
       run: |
-        black --check --diff .
-        isort --check-only --diff .
-        flake8 .
-        mypy .
+        black --check --diff app/
+        isort --check-only --diff app/
+        flake8 app/
+        mypy app/
         
     - name: Security scan
       run: |
@@ -167,10 +167,10 @@ jobs:
         
     - name: Code formatting and linting check
       run: |
-        black --check --diff .
-        isort --check-only --diff .
-        flake8 .
-        mypy .
+        black --check --diff app/
+        isort --check-only --diff app/
+        flake8 app/
+        mypy app/
         
     - name: Security Tests (parallel)
       run: |

@@ -185,7 +185,7 @@ CI/CDプラットフォームとして **GitHub Actions** を使用し、以下�
 
 #### ワークフロー構成
 - **単体テスト (Unit Tests)**: 各サービス（financial-data, data-management, api-gateway, notification）について、Python 3.12環境でのpytestによるテスト実行とコードカバレッジ測定
-- **コード品質チェック**: Blackフォーマット、flake8リント、mypy型チェック、isortインポート整理
+- **コード品質チェック**: Blackフォーマット、flake8リント、mypy型チェック、isortインポート整理（**対象: app/ディレクトリのみ**）
 - **統合テスト (Integration Tests)**: PostgreSQL・Redisサービスを起動し、サービス間連携のテスト実行
 - **E2Eテスト (End-to-End Tests)**: Docker Composeでアプリケーション全体を起動し、Playwrightによるブラウザテスト実行
 - **セキュリティテスト (Security Tests)**: Bandit・Safetyによる脆弱性スキャン実行

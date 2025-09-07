@@ -96,7 +96,7 @@ jobs:
         echo "🚀 Ready for deployment"
         
     - name: Upload deployment artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: deployment-artifacts-${{ matrix.python-version }}
         path: |

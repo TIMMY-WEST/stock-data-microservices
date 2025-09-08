@@ -29,7 +29,7 @@ repos:
     rev: 'v1.8.0'  # requirements.txtと同じバージョン
     hooks:
       - id: mypy
-        additional_dependencies: [types-requests]
+        additional_dependencies: [types-requests, types-Flask-Cors, types-Flask-Migrate]
         args: ['--config-file=setup.cfg']
 
   # 一般的なファイルチェック

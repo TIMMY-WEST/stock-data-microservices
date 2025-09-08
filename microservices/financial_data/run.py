@@ -12,7 +12,7 @@ from typing import Any, List
 
 from config import get_config
 
-from .app import FinancialDataService
+from app import FinancialDataService
 
 
 def setup_logging(config: Any) -> None:

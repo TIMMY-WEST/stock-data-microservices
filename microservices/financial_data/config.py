@@ -115,11 +115,18 @@ class ProductionConfig(Config):
     DEBUG = False
     LOG_LEVEL = "WARNING"
 
-    # 本番環境では環境変数から必須設定を取得
-    SECRET_KEY = os.environ.get("SECRET_KEY")
+    @classmethod
+    def validate_environment(cls):
+        """本番環境の環境変数を検証"""
+        secret_key = os.environ.get("SECRET_KEY")
+        if not secret_key:
+            raise ValueError(
+                "SECRET_KEY environment variable is required in production"
+            )
+        return secret_key
 
-    if not SECRET_KEY:
-        raise ValueError("SECRET_KEY environment variable is required in production")
+    # 本番環境では環境変数から必須設定を取得
+    SECRET_KEY = os.environ.get("SECRET_KEY", "fallback-secret-for-non-production")
 
     # 本番環境では厳格なレート制限
     RATE_LIMITING = {

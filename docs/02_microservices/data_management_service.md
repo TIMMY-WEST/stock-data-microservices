@@ -220,7 +220,7 @@ CREATE TABLE stock_data (
     volume BIGINT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
+
     -- インデックス・制約
     UNIQUE(symbol, date),
     INDEX idx_symbol_date (symbol, date),
@@ -237,11 +237,11 @@ CREATE TABLE stock_symbols (
     industry VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
+
     INDEX idx_company_name (company_name)
 );
 
--- 取得ログテーブル  
+-- 取得ログテーブル
 CREATE TABLE fetch_logs (
     id SERIAL PRIMARY KEY,
     fetch_id UUID NOT NULL,
@@ -251,7 +251,7 @@ CREATE TABLE fetch_logs (
     records_count INTEGER,
     processing_time_ms INTEGER,
     fetch_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
+
     INDEX idx_fetch_id (fetch_id),
     INDEX idx_symbol_status (symbol, status),
     INDEX idx_fetch_date (fetch_date)
@@ -272,7 +272,7 @@ Base = declarative_base()
 
 class StockData(Base):
     __tablename__ = 'stock_data'
-    
+
     id = Column(Integer, primary_key=True)
     symbol = Column(String(10), nullable=False, index=True)
     date = Column(Date, nullable=False, index=True)
@@ -284,12 +284,12 @@ class StockData(Base):
     volume = Column(BigInteger)
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
-    
+
     __table_args__ = (
         UniqueConstraint('symbol', 'date', name='unique_symbol_date'),
         Index('idx_symbol_date', 'symbol', 'date'),
     )
-    
+
     def to_dict(self) -> dict:
         """辞書形式に変換"""
         return {
@@ -308,7 +308,7 @@ class StockData(Base):
 
 class StockSymbol(Base):
     __tablename__ = 'stock_symbols'
-    
+
     symbol = Column(String(10), primary_key=True)
     company_name = Column(String(255), index=True)
     market = Column(String(50))
@@ -319,7 +319,7 @@ class StockSymbol(Base):
 
 class FetchLog(Base):
     __tablename__ = 'fetch_logs'
-    
+
     id = Column(Integer, primary_key=True)
     fetch_id = Column(String(36), nullable=False, index=True)  # UUID
     symbol = Column(String(10), index=True)
@@ -348,29 +348,29 @@ class DatabaseService:
         self.engine = create_engine(database_url, pool_size=10, max_overflow=20)
         self.SessionLocal = sessionmaker(bind=self.engine)
         self.logger = logging.getLogger(__name__)
-        
+
         # テーブル作成
         Base.metadata.create_all(bind=self.engine)
-    
+
     async def save_stock_data(
-        self, 
-        symbol: str, 
-        data: List[Dict], 
+        self,
+        symbol: str,
+        data: List[Dict],
         mode: str = "overwrite"
     ) -> Dict:
         """
         株価データの保存
-        
+
         Args:
             symbol: 銘柄コード
             data: 株価データのリスト
             mode: 保存モード ("overwrite", "skip", "append")
-            
+
         Returns:
             保存結果
         """
         start_time = datetime.now()
-        
+
         with self.SessionLocal() as session:
             try:
                 # 既存データの処理
@@ -379,20 +379,20 @@ class DatabaseService:
                         StockData.symbol == symbol
                     ).delete()
                     self.logger.info(f"Deleted {deleted_count} existing records for {symbol}")
-                
+
                 saved_count = 0
                 skipped_count = 0
                 updated_count = 0
-                
+
                 for record in data:
                     existing_record = None
-                    
+
                     if mode != "overwrite":
                         existing_record = session.query(StockData).filter(
                             StockData.symbol == symbol,
                             StockData.date == record["date"]
                         ).first()
-                    
+
                     if existing_record:
                         if mode == "skip":
                             skipped_count += 1
@@ -418,14 +418,14 @@ class DatabaseService:
                         )
                         session.add(stock_data)
                         saved_count += 1
-                
+
                 session.commit()
-                
+
                 processing_time = (datetime.now() - start_time).total_seconds() * 1000
-                
+
                 # 日付範囲の計算
                 date_range = self._get_date_range(session, symbol)
-                
+
                 return {
                     "status": "success",
                     "symbol": symbol,
@@ -436,12 +436,12 @@ class DatabaseService:
                     "processing_time_ms": int(processing_time),
                     "date_range": date_range
                 }
-                
+
             except Exception as e:
                 session.rollback()
                 self.logger.error(f"Error saving data for {symbol}: {str(e)}")
                 raise
-    
+
     async def get_stocks_list(
         self,
         page: int = 1,
@@ -451,35 +451,35 @@ class DatabaseService:
         end_date: Optional[str] = None
     ) -> Dict:
         """株価データ一覧の取得"""
-        
+
         with self.SessionLocal() as session:
             # ベースクエリ
             query = session.query(StockData.symbol, func.count().label('data_count'))
-            
+
             # フィルター条件
             if symbol:
                 query = query.filter(StockData.symbol.ilike(f"%{symbol}%"))
-            
+
             if start_date:
                 query = query.filter(StockData.date >= start_date)
-            
+
             if end_date:
                 query = query.filter(StockData.date <= end_date)
-            
+
             # グループ化とページング
             query = query.group_by(StockData.symbol)
             total = query.count()
-            
+
             offset = (page - 1) * limit
             results = query.offset(offset).limit(limit).all()
-            
+
             # 詳細情報の取得
             stocks = []
             for result in results:
                 stock_info = self._get_stock_summary(session, result.symbol)
                 stock_info["data_count"] = result.data_count
                 stocks.append(stock_info)
-            
+
             return {
                 "stocks": stocks,
                 "pagination": {
@@ -491,7 +491,7 @@ class DatabaseService:
                     "has_prev": page > 1
                 }
             }
-    
+
     async def get_stock_data(
         self,
         symbol: str,
@@ -501,28 +501,28 @@ class DatabaseService:
         limit: int = 100
     ) -> Dict:
         """特定銘柄の詳細データ取得"""
-        
+
         with self.SessionLocal() as session:
             # ベースクエリ
             query = session.query(StockData).filter(StockData.symbol == symbol)
-            
+
             # 日付フィルター
             if start_date:
                 query = query.filter(StockData.date >= start_date)
             if end_date:
                 query = query.filter(StockData.date <= end_date)
-            
+
             # 並び順
             query = query.order_by(StockData.date.desc())
-            
+
             # ページング
             total = query.count()
             offset = (page - 1) * limit
             records = query.offset(offset).limit(limit).all()
-            
+
             if not records:
                 raise ValueError(f"No data found for symbol {symbol}")
-            
+
             # 統計情報の計算
             summary_query = session.query(
                 func.min(StockData.date).label('start'),
@@ -531,14 +531,14 @@ class DatabaseService:
                 func.max(StockData.high).label('highest'),
                 func.min(StockData.low).label('lowest')
             ).filter(StockData.symbol == symbol)
-            
+
             if start_date:
                 summary_query = summary_query.filter(StockData.date >= start_date)
             if end_date:
                 summary_query = summary_query.filter(StockData.date <= end_date)
-            
+
             summary = summary_query.first()
-            
+
             return {
                 "symbol": symbol,
                 "company_name": self._get_company_name(session, symbol),
@@ -563,47 +563,47 @@ class DatabaseService:
                     "has_prev": page > 1
                 }
             }
-    
+
     async def delete_stock_data(self, symbol: str) -> Dict:
         """特定銘柄のデータ削除"""
         start_time = datetime.now()
-        
+
         with self.SessionLocal() as session:
             try:
                 deleted_count = session.query(StockData).filter(
                     StockData.symbol == symbol
                 ).delete()
-                
+
                 session.commit()
-                
+
                 processing_time = (datetime.now() - start_time).total_seconds() * 1000
-                
+
                 return {
                     "status": "success",
                     "symbol": symbol,
                     "deleted_records": deleted_count,
                     "operation_time_ms": int(processing_time)
                 }
-                
+
             except Exception as e:
                 session.rollback()
                 self.logger.error(f"Error deleting data for {symbol}: {str(e)}")
                 raise
-    
+
     def _get_stock_summary(self, session, symbol: str) -> Dict:
         """銘柄サマリー情報の取得"""
-        
+
         # 最新データの取得
         latest = session.query(StockData).filter(
             StockData.symbol == symbol
         ).order_by(StockData.date.desc()).first()
-        
+
         # 日付範囲の取得
         date_range = self._get_date_range(session, symbol)
-        
+
         # 会社名の取得
         company_name = self._get_company_name(session, symbol)
-        
+
         return {
             "symbol": symbol,
             "company_name": company_name,
@@ -613,25 +613,25 @@ class DatabaseService:
             "created_at": latest.created_at.isoformat() if latest else None,
             "updated_at": latest.updated_at.isoformat() if latest else None
         }
-    
+
     def _get_date_range(self, session, symbol: str) -> Dict:
         """日付範囲の取得"""
         result = session.query(
             func.min(StockData.date).label('start'),
             func.max(StockData.date).label('end')
         ).filter(StockData.symbol == symbol).first()
-        
+
         return {
             "start": result.start.isoformat() if result.start else None,
             "end": result.end.isoformat() if result.end else None
         }
-    
+
     def _get_company_name(self, session, symbol: str) -> Optional[str]:
         """会社名の取得"""
         stock_symbol = session.query(StockSymbol).filter(
             StockSymbol.symbol == symbol
         ).first()
-        
+
         return stock_symbol.company_name if stock_symbol else None
 ```
 
@@ -646,7 +646,7 @@ CREATE INDEX CONCURRENTLY idx_stock_data_date_range ON stock_data (date) WHERE d
 CREATE INDEX CONCURRENTLY idx_fetch_logs_symbol_status_date ON fetch_logs (symbol, status, fetch_date);
 
 -- パーティション化（大量データ対応）
-CREATE TABLE stock_data_2024 PARTITION OF stock_data 
+CREATE TABLE stock_data_2024 PARTITION OF stock_data
 FOR VALUES FROM ('2024-01-01') TO ('2025-01-01');
 ```
 
@@ -655,10 +655,10 @@ FOR VALUES FROM ('2024-01-01') TO ('2025-01-01');
 ```python
 # services/database.py - パフォーマンス最適化
 class DatabaseService:
-    
+
     async def bulk_insert_stock_data(self, data: List[Dict]) -> Dict:
         """バルクインサートによる高速データ挿入"""
-        
+
         with self.SessionLocal() as session:
             try:
                 # バルクインサート用のデータ準備
@@ -676,33 +676,33 @@ class DatabaseService:
                         'created_at': datetime.now(),
                         'updated_at': datetime.now()
                     })
-                
+
                 # バルクインサート実行
                 session.bulk_insert_mappings(StockData, bulk_data)
                 session.commit()
-                
+
                 return {"status": "success", "records_inserted": len(bulk_data)}
-                
+
             except Exception as e:
                 session.rollback()
                 raise
-    
+
     async def get_stock_data_cached(self, symbol: str, **kwargs) -> Dict:
         """キャッシュ機能付きデータ取得"""
-        
+
         cache_key = f"stock_data:{symbol}:{hash(frozenset(kwargs.items()))}"
-        
+
         # キャッシュから取得を試行（Redis使用時）
         # cached_result = await self.redis_client.get(cache_key)
         # if cached_result:
         #     return json.loads(cached_result)
-        
+
         # データベースから取得
         result = await self.get_stock_data(symbol, **kwargs)
-        
+
         # キャッシュに保存（5分間）
         # await self.redis_client.setex(cache_key, 300, json.dumps(result))
-        
+
         return result
 ```
 
@@ -724,44 +724,44 @@ from abc import ABC, abstractmethod
 
 class DataManagementServiceInterface(ABC):
     """Data Management Service インターフェース"""
-    
+
     @abstractmethod
     async def save_stock_data(self, symbol: str, data: List[Dict], mode: str) -> Dict:
         pass
-    
+
     @abstractmethod
     async def get_stocks_list(self, **kwargs) -> Dict:
         pass
-    
+
     @abstractmethod
     async def health_check(self) -> Dict:
         pass
 
 class DatabaseService(DataManagementServiceInterface):
     """データベース操作実装（MVP時の内部実装）"""
-    
+
     async def handle_request(self, endpoint: str, method: str, data: dict):
         """統一リクエストハンドラ（将来のHTTP API用）"""
-        
+
         if endpoint == '/internal/save-stock-data' and method == 'POST':
             return await self.save_stock_data(
                 data['symbol'], data['data'], data['mode']
             )
-        
+
         elif endpoint == '/internal/stocks' and method == 'GET':
             return await self.get_stocks_list(**data)
-        
+
         elif endpoint.startswith('/internal/stocks/') and method == 'GET':
             symbol = endpoint.split('/')[-2]  # Extract symbol from path
             return await self.get_stock_data(symbol, **data)
-        
+
         elif endpoint.startswith('/internal/stocks/') and method == 'DELETE':
             symbol = endpoint.split('/')[-1]
             return await self.delete_stock_data(symbol)
-        
+
         elif endpoint == '/internal/health' and method == 'GET':
             return await self.health_check()
-        
+
         else:
             raise ValueError(f"Unknown endpoint: {endpoint}")
 ```

@@ -4,7 +4,7 @@
 
 ### 1.1 前提条件
 **⚠️ 重要**: 以下の環境が構築済みであることが前提です
-- **Python**: 3.11+ がインストール済み
+- **Python**: 3.12 がインストール済み
 - **Claude Desktop**: Claude Desktop アプリがインストール済み
 - **開発エディタ**: VS Code等の開発環境が準備済み
 
@@ -21,7 +21,7 @@
 1. Python開発環境確認
 2. Claude Desktop インストール・設定
 
-【MCP環境構築】  
+【MCP環境構築】
 3. Claude MCP Server セットアップ
 4. Claude設定ファイル更新
 5. MCP接続確認
@@ -103,7 +103,7 @@ stock-data-app/
 
 #### Python環境確認
 ```bash
-# Python バージョン確認（3.11+ が必要）
+# Python バージョン確認（3.12 が必要）
 python --version
 # または
 python3 --version
@@ -245,16 +245,16 @@ class StockDataMCPServer {
       switch (request.params.name) {
         case "project_status":
           return await this.getProjectStatus();
-        
+
         case "run_tests":
           return await this.runTests(request.params.arguments);
-          
+
         case "check_api_endpoints":
           return await this.checkApiEndpoints();
-          
+
         case "database_status":
           return await this.checkDatabaseStatus();
-          
+
         default:
           throw new Error(`Unknown tool: ${request.params.name}`);
       }
@@ -533,8 +533,6 @@ gunicorn==21.2.0
 # 開発・テスト用
 pytest==7.4.3
 pytest-flask==1.3.0
-black==23.12.0
-flake8==6.1.0
 ```
 
 ### 5.2 docker-compose.yml
@@ -607,28 +605,28 @@ from datetime import timedelta
 
 class Config:
     """基本設定"""
-    
+
     # Flask 設定
     SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
-    
+
     # データベース設定
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL',
         'postgresql://stock_user:stock_password@localhost:5432/stock_db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = os.environ.get('FLASK_ENV') == 'development'
-    
+
     # Yahoo Finance 設定
     YAHOO_FINANCE_BASE_URL = os.environ.get('YAHOO_FINANCE_BASE_URL',
         'https://query1.finance.yahoo.com')
     YAHOO_FINANCE_TIMEOUT = int(os.environ.get('YAHOO_FINANCE_TIMEOUT', 30))
-    
+
     # CORS設定
     CORS_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
-    
+
     # アプリケーション設定
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
     JSON_SORT_KEYS = False
-    
+
     # ページネーション設定
     DEFAULT_PER_PAGE = 12
     MAX_PER_PAGE = 100
@@ -642,10 +640,10 @@ class ProductionConfig(Config):
     """本番環境設定"""
     DEBUG = False
     TESTING = False
-    
+
     # 本番環境専用設定
     SQLALCHEMY_ECHO = False
-    
+
 class TestingConfig(Config):
     """テスト環境設定"""
     TESTING = True
@@ -694,7 +692,7 @@ REM 0. 前提条件確認
 echo 🔍 前提条件を確認中...
 python --version >nul 2>&1
 if errorlevel 1 (
-    echo ❌ Python 3.11+ が必要です
+    echo ❌ Python 3.12 が必要です
     pause
     exit /b 1
 )
@@ -721,7 +719,7 @@ if not exist "mcp-server" (
     npm init -y
     npm install @modelcontextprotocol/sdk typescript @types/node
     npm install -g tsx
-    
+
     REM TypeScript設定作成
     echo { > tsconfig.json
     echo   "compilerOptions": { >> tsconfig.json
@@ -736,7 +734,7 @@ if not exist "mcp-server" (
     echo   }, >> tsconfig.json
     echo   "include": ["src/**/*"] >> tsconfig.json
     echo } >> tsconfig.json
-    
+
     REM MCP Server ソースコードを配置（手動で作成要）
     mkdir src
     echo ✏️  mcp-server/src/server.ts を作成してください
@@ -869,7 +867,9 @@ pytest tests\ -v
 REM コードスタイルチェック
 echo 📝 コードスタイルをチェック中...
 black --check app\ tests\
-flake8 app\ tests\ --max-line-length=88 --extend-ignore=E203,W503
+isort --check-only app\ tests\
+flake8 app\ tests\
+mypy app\ tests\
 
 echo ✅ 全てのテストが完了しました！
 pause
@@ -1053,7 +1053,7 @@ VS Code の推奨拡張機能・設定ファイルについては、**[開発者
 Claude チャットで以下のように支援を受けられます：
 ```
 💬 "プロジェクトの状態を確認してください"
-💬 "APIエンドポイントをチェックしてください"  
+💬 "APIエンドポイントをチェックしてください"
 💬 "データベースの状況を教えてください"
 💬 "テストを実行してください"
 ```

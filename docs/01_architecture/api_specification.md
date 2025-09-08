@@ -297,7 +297,7 @@ Content-Type: application/json
         "updated_at": "2024-01-15T10:30:45+09:00"
       },
       {
-        "symbol": "6758.T", 
+        "symbol": "6758.T",
         "company_name": "ソニーグループ",
         "data_count": 252,
         "date_range": {
@@ -575,26 +575,26 @@ def fetch_data():
     """株価データ取得開始"""
     try:
         data = request.get_json()
-        
+
         # バリデーション
         errors = validate_fetch_request(data)
         if errors:
             return error_response(
-                'VALIDATION_ERROR', 
+                'VALIDATION_ERROR',
                 '入力データが正しくありません',
                 details=errors
             ), 422
-        
+
         symbol = data['symbol'].upper()
         period = data['period']
-        
+
         # 取得ID生成
         fetch_id = str(uuid.uuid4())
-        
+
         # バックグラウンドでデータ取得開始
         yahoo_service = YahooFinanceService()
         yahoo_service.fetch_stock_data_async(fetch_id, symbol, period)
-        
+
         return success_response({
             'fetch_id': fetch_id,
             'status': 'started',
@@ -602,34 +602,34 @@ def fetch_data():
             'period': period,
             'estimated_records': estimate_records(period)
         }, 'データ取得を開始しました')
-        
+
     except Exception as e:
         return error_response('INTERNAL_ERROR', str(e)), 500
 
-@api.route('/fetch-status', methods=['GET'])  
+@api.route('/fetch-status', methods=['GET'])
 def fetch_status():
     """データ取得進捗確認"""
     try:
         fetch_id = request.args.get('fetch_id')
-        
+
         if not fetch_id:
             return error_response(
                 'VALIDATION_ERROR',
                 'fetch_id パラメータが必要です'
             ), 422
-        
+
         # 進捗状況取得
         progress_service = ProgressService()
         status = progress_service.get_fetch_status(fetch_id)
-        
+
         if not status:
             return error_response(
                 'FETCH_NOT_FOUND',
                 '指定された取得処理が見つかりません'
             ), 404
-            
+
         return success_response(status)
-        
+
     except Exception as e:
         return error_response('INTERNAL_ERROR', str(e)), 500
 
@@ -642,7 +642,7 @@ def get_stocks():
         symbol = request.args.get('symbol')
         start_date = request.args.get('start_date')
         end_date = request.args.get('end_date')
-        
+
         db_service = DatabaseService()
         result = db_service.get_stock_list(
             page=page,
@@ -651,26 +651,26 @@ def get_stocks():
             start_date=start_date,
             end_date=end_date
         )
-        
+
         return success_response(result)
-        
+
     except Exception as e:
         return error_response('INTERNAL_ERROR', str(e)), 500
 
 def validate_fetch_request(data):
     """リクエストデータバリデーション"""
     errors = {}
-    
+
     if not data.get('symbol'):
         errors['symbol'] = ['銘柄コードは必須です']
     elif not re.match(r'^[0-9]{4}\.T$', data['symbol']):
         errors['symbol'] = ['銘柄コードの形式が正しくありません (例: 7203.T)']
-    
+
     if not data.get('period'):
         errors['period'] = ['期間は必須です']
     elif data['period'] not in ['1y', '5y', 'max']:
         errors['period'] = ['期間は 1y, 5y, max のいずれかを指定してください']
-    
+
     return errors if errors else None
 
 def success_response(data=None, message=None):
@@ -703,7 +703,7 @@ class StockApiClient {
     constructor(baseURL = '') {
         this.baseURL = baseURL;
     }
-    
+
     async fetchStockData(symbol, period) {
         const response = await fetch(`${this.baseURL}/api/fetch-data`, {
             method: 'POST',
@@ -712,50 +712,50 @@ class StockApiClient {
             },
             body: JSON.stringify({ symbol, period })
         });
-        
+
         const data = await response.json();
-        
+
         if (!response.ok) {
             throw new Error(data.error?.message || 'データ取得に失敗しました');
         }
-        
+
         return data.data;
     }
-    
+
     async getFetchStatus(fetchId) {
         const response = await fetch(`${this.baseURL}/api/fetch-status?fetch_id=${fetchId}`);
         const data = await response.json();
-        
+
         if (!response.ok) {
             throw new Error(data.error?.message || 'ステータス取得に失敗しました');
         }
-        
+
         return data.data;
     }
-    
+
     async getStocks(params = {}) {
         const queryString = new URLSearchParams(params).toString();
         const response = await fetch(`${this.baseURL}/api/stocks?${queryString}`);
         const data = await response.json();
-        
+
         if (!response.ok) {
             throw new Error(data.error?.message || 'データ取得に失敗しました');
         }
-        
+
         return data.data;
     }
-    
+
     async deleteStock(symbol) {
         const response = await fetch(`${this.baseURL}/api/stocks/${symbol}`, {
             method: 'DELETE'
         });
-        
+
         const data = await response.json();
-        
+
         if (!response.ok) {
             throw new Error(data.error?.message || '削除に失敗しました');
         }
-        
+
         return data.data;
     }
 }
@@ -786,7 +786,7 @@ def test_fetch_data_success(client):
         }),
         content_type='application/json'
     )
-    
+
     assert response.status_code == 200
     data = json.loads(response.data)
     assert data['success'] == True
@@ -802,7 +802,7 @@ def test_fetch_data_validation_error(client):
         }),
         content_type='application/json'
     )
-    
+
     assert response.status_code == 422
     data = json.loads(response.data)
     assert data['success'] == False
@@ -811,7 +811,7 @@ def test_fetch_data_validation_error(client):
 def test_get_stocks(client):
     """株価データ一覧取得テスト"""
     response = client.get('/api/stocks?page=1&per_page=12')
-    
+
     assert response.status_code == 200
     data = json.loads(response.data)
     assert data['success'] == True
@@ -825,7 +825,7 @@ def test_get_stocks(client):
 
 ### ✅ **実装範囲**
 - 株価データ取得・進捗確認API
-- データ一覧・詳細・削除API  
+- データ一覧・詳細・削除API
 - ヘルスチェックAPI
 - 詳細なエラーハンドリング
 

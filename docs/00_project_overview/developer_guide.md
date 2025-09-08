@@ -27,11 +27,12 @@
 ### 2.1 必要ソフトウェア（必須）
 | ソフトウェア | バージョン | 用途 |
 |-------------|-----------|------|
-| Python | 3.11+ | バックエンド開発 |
+| Python | 3.12 | バックエンド開発 |
 | Git | 2.30+ | バージョン管理 |
 | Docker | 20.0+ | データベースコンテナ |
 | Docker Compose | 2.0+ | コンテナオーケストレーション |
 | Node.js | 18+ | MCP Server実行環境 |
+| mypy | 最新版 | Python 静的型チェック |
 
 ### 2.2 開発環境構築手順
 1. **Python仮想環境の使用必須**
@@ -56,9 +57,24 @@
 ```json
 {
     "python.interpreter": "./venv/bin/python",
-    "python.formatting.provider": "black",
-    "python.formatting.blackArgs": ["--line-length", "88"],
-    "python.linting.flake8Enabled": true
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        }
+    },
+    "python.linting.enabled": true,
+    "python.linting.flake8Enabled": true,
+    "black-formatter.args": ["--line-length=88"],
+    "python.linting.flake8Args": ["--max-line-length=88", "--extend-ignore=E203,W503"],
+    "python.linting.mypyEnabled": true,
+    "python.linting.mypyArgs": ["--ignore-missing-imports", "--show-error-codes"],
+    "isort.args": ["--profile", "black", "--line-length", "88"],
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.autoFormatStrings": true,
+    "python.analysis.completeFunctionParens": true
 }
 ```
 
@@ -66,7 +82,26 @@
 - ms-python.python
 - ms-python.black-formatter
 - ms-python.flake8
+- ms-python.isort
 - bradlc.vscode-tailwindcss
+
+### 2.4 mypyについて
+
+**mypyとは:**
+Pythonの静的型チェッカーで、型ヒントを使用してコードの型安全性を検証します。
+
+**主な機能:**
+- **型チェック**: 静的型解析によるエラー検出
+- **型ヒント検証**: 関数・変数の型注釈の妥当性確認
+- **エラー検出**: 型関連の潜在的なバグの早期発見
+- **段階的型付け**: 既存コードへの段階的な型注釈追加をサポート
+- **設定可能**: プロジェクトに応じた詳細な設定が可能
+
+**本プロジェクトでの使用目的:**
+1. **品質向上**: 実行前の型エラー検出
+2. **保守性向上**: 型安全性によるリファクタリングの安全性確保
+3. **チーム開発支援**: 一貫した型チェック基準の提供
+4. **ドキュメント化**: 型注釈による自己文書化コード
 
 ## 3. ブランチ戦略・Git運用ルール
 
@@ -87,7 +122,7 @@ main (本番用)
 - **保護**: 直接pushは禁止、Pull Requestのみ
 - **マージ条件**: テスト通過 + コードレビュー完了
 
-#### developブランチ  
+#### developブランチ
 - **用途**: 各機能ブランチの統合・結合テスト
 - **作成元**: mainブランチから作成
 - **マージ先**: mainブランチへPull Request
@@ -124,7 +159,7 @@ main (本番用)
 #### 3.3.3 Scope（スコープ）
 プロジェクト内の変更箇所を明示（オプション）:
 - **api**: APIゲートウェイ関連
-- **stock**: 株価取得サービス関連  
+- **stock**: 株価取得サービス関連
 - **frontend**: フロントエンド関連
 - **db**: データベース関連
 - **docker**: Docker設定関連
@@ -175,9 +210,62 @@ fix(db): resolve connection issues #125 #126
 
 ### 4.1 Python コーディング規約
 - **フォーマット**: Black (88文字制限)
-- **リンター**: Flake8
-- **型ヒント**: 関数の引数・戻り値に型注釈を使用
+- **リンター**: flake8
+- **型チェック**: mypy
+- **インポート整理**: isort
+- **型ヒント**: 関数の引数・戻り値に型注釈を使用（mypyで静的型チェック）
 - **docstring**: 関数・クラスにはGoogle形式のdocstringを記述
+
+### 4.1.1 pre-commit による自動品質チェック
+
+**pre-commitの目的**
+コミット時に自動的にコードフォーマットと静的解析を実行し、GitHub Actionでのフォーマットエラーを防ぐ。
+
+**セットアップ手順**
+```bash
+# 1. pre-commitのインストール（requirements.txtに含まれています）
+pip install pre-commit
+
+# 2. pre-commitフックの有効化
+pre-commit install
+
+# 3. 全ファイルに対してpre-commitを実行（初回セットアップ時推奨）
+pre-commit run --all-files
+```
+
+**実行されるチェック内容**
+1. **Black**: Pythonコードの自動フォーマット（88文字制限）
+2. **isort**: import文の並び替え（blackプロファイル使用）
+3. **flake8**: PEP8準拠チェック（E203, W503は除外）
+4. **mypy**: 型チェック（setup.cfg設定使用）
+5. **一般的なファイルチェック**: 末尾空白除去、ファイル終端修正、YAMLチェックなど
+
+**コミット時の動作**
+- 自動修正が行われた場合、コミットは失敗し、修正内容を確認してから再コミットが必要
+- すべてのチェックがパスした場合のみコミットが成功
+- `fail_fast: true`設定により、最初の失敗時点で停止
+
+**除外ファイル**
+以下のファイル・ディレクトリはpre-commitの対象外：
+- migrations/
+- .venv/, venv/
+- build/, dist/
+- node_modules/
+- .git/
+
+**トラブルシューティング**
+```bash
+# pre-commitが失敗した場合の対処方法
+
+# 1. 自動修正されたファイルをステージに追加
+git add .
+
+# 2. 再度コミット実行
+git commit -m "your commit message"
+
+# 3. 特定のフックをスキップする場合（緊急時のみ）
+git commit -m "your message" --no-verify
+```
 
 ### 4.2 コード品質基準
 - **可読性重視**: 変数名・関数名・コメントは日本語でも可（わかりやすさ優先）
@@ -200,7 +288,7 @@ fix(db): resolve connection issues #125 #126
 
 ### 5.2 カバレッジ目標
 - **Unit Tests**: 90%以上
-- **Integration Tests**: 80%以上  
+- **Integration Tests**: 80%以上
 - **E2E Tests**: 60%以上（主要パス）
 
 ### 5.3 品質ゲート（ブランチ別）
@@ -323,7 +411,7 @@ hotfix/issue-103-database-security-patch
 
 ### 1. Code Owner（必須レビューア）
 - Frontend: @frontend-lead
-- Backend API: @backend-lead  
+- Backend API: @backend-lead
 - Database: @database-admin
 - Infrastructure: @devops-lead
 
@@ -363,7 +451,7 @@ Closes #[Issue番号]
 
 ### 📝 関連ドキュメント更新
 - [ ] README.md更新
-- [ ] API仕様書更新  
+- [ ] API仕様書更新
 - [ ] 開発者ガイド更新
 ```
 
@@ -385,7 +473,7 @@ Closes #[Issue番号]
 #### マイルストーン管理
 **マイルストーン設定例**
 - `Sprint 1 - MVP Core` (期限: 2024-02-15)
-- `Sprint 2 - UI Enhancement` (期限: 2024-03-01)  
+- `Sprint 2 - UI Enhancement` (期限: 2024-03-01)
 - `v1.0.0 Release` (期限: 2024-03-15)
 - `v1.1.0 Feature Update` (期限: 2024-04-30)
 
@@ -396,7 +484,7 @@ Closes #[Issue番号]
 ```bash
 # PRタイトル・コメントでIssue自動クローズ
 "Fix #123: 株価取得APIの実装"
-"Resolve #456: ダッシュボードのレスポンシブ対応"  
+"Resolve #456: ダッシュボードのレスポンシブ対応"
 "Close #789: データベース接続エラーの修正"
 ```
 
@@ -405,7 +493,7 @@ Closes #[Issue番号]
 <!-- PR説明欄 -->
 ## 関連Issue
 - Closes #123 (メイン機能)
-- Fixes #124 (バグ修正)  
+- Fixes #124 (バグ修正)
 - Resolves #125 (サブタスク)
 - Relates to #126 (関連作業)
 ```
@@ -590,7 +678,7 @@ python run.py  # コンソール出力で確認
 ### 10.1 Claude MCP活用
 Claude チャットで以下の開発支援を受けられます：
 - "プロジェクトの状態を確認してください"
-- "APIエンドポイントをチェックしてください"  
+- "APIエンドポイントをチェックしてください"
 - "データベースの状況を教えてください"
 - "テストを実行してください"
 
@@ -604,9 +692,10 @@ pytest tests/ -v
 
 # コードフォーマット
 black app/ tests/
-
-# リンターチェック
+isort app/ tests/
 flake8 app/ tests/
+mypy app/ tests/
+
 
 # データベースマイグレーション
 flask db migrate -m "migration message"

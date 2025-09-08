@@ -276,7 +276,7 @@ import logging
 
 class TaskStatus:
     CREATED = "created"
-    RUNNING = "running" 
+    RUNNING = "running"
     COMPLETED = "completed"
     ERROR = "error"
     PAUSED = "paused"
@@ -284,7 +284,7 @@ class TaskStatus:
 
 class Task:
     def __init__(
-        self, 
+        self,
         task_id: str,
         task_type: str,
         total_items: int,
@@ -300,15 +300,15 @@ class Task:
         self.message = ""
         self.error_message = None
         self.metadata = metadata or {}
-        
+
         self.created_at = datetime.now()
         self.started_at = None
         self.updated_at = None
         self.completed_at = None
-        
+
         self.results = {}
         self.processing_details = {}
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """タスクオブジェクトを辞書に変換"""
         return {
@@ -331,12 +331,12 @@ class Task:
             "error_message": self.error_message,
             "metadata": self.metadata
         }
-    
+
     def _get_processing_time_ms(self) -> Optional[int]:
         """処理時間をミリ秒で計算"""
         if not self.started_at:
             return None
-        
+
         end_time = self.completed_at or datetime.now()
         return int((end_time - self.started_at).total_seconds() * 1000)
 
@@ -344,13 +344,13 @@ class ProgressService:
     def __init__(self):
         self.tasks: Dict[str, Task] = {}
         self.logger = logging.getLogger(__name__)
-        
+
         # WebSocket接続管理（将来実装）
         self.websocket_connections = {}
-        
+
         # タスク履歴の自動削除（24時間後）
         self._start_cleanup_task()
-    
+
     async def create_task(
         self,
         task_type: str,
@@ -359,19 +359,19 @@ class ProgressService:
         metadata: Optional[Dict] = None
     ) -> str:
         """新しいタスクを作成"""
-        
+
         task_id = str(uuid.uuid4())
         task = Task(task_id, task_type, total_items, symbol, metadata)
-        
+
         self.tasks[task_id] = task
-        
+
         self.logger.info(f"Created task {task_id}: {task_type}")
-        
+
         # WebSocket通知（将来実装）
         # await self._notify_websocket_subscribers(task_id, "task_created", task.to_dict())
-        
+
         return task_id
-    
+
     async def update_progress(
         self,
         task_id: str,
@@ -383,56 +383,56 @@ class ProgressService:
         processing_details: Optional[Dict] = None
     ) -> Dict:
         """タスクの進捗を更新"""
-        
+
         if task_id not in self.tasks:
             raise ValueError(f"Task {task_id} not found")
-        
+
         task = self.tasks[task_id]
-        
+
         # ステータス更新
         old_status = task.status
         task.status = status
         task.updated_at = datetime.now()
-        
+
         # 開始時刻の記録
         if old_status == TaskStatus.CREATED and status == TaskStatus.RUNNING:
             task.started_at = datetime.now()
-        
+
         # 完了時刻の記録
         if status in [TaskStatus.COMPLETED, TaskStatus.ERROR, TaskStatus.CANCELLED]:
             task.completed_at = datetime.now()
-        
+
         # 進捗情報の更新
         if current_items is not None:
             task.current_items = current_items
-        
+
         if message:
             task.message = message
-        
+
         if error_message:
             task.error_message = error_message
-        
+
         if results:
             task.results.update(results)
-        
+
         if processing_details:
             task.processing_details.update(processing_details)
-        
+
         self.logger.info(f"Updated task {task_id}: {status} ({current_items}/{task.total_items})")
-        
+
         # WebSocket通知（将来実装）
         # await self._notify_websocket_subscribers(task_id, "progress_update", task.to_dict())
-        
+
         return task.to_dict()
-    
+
     async def get_task_status(self, task_id: str) -> Optional[Dict]:
         """タスクの状況を取得"""
-        
+
         if task_id not in self.tasks:
             return None
-        
+
         return self.tasks[task_id].to_dict()
-    
+
     async def get_tasks_list(
         self,
         status: Optional[str] = None,
@@ -442,7 +442,7 @@ class ProgressService:
         limit: int = 20
     ) -> Dict:
         """タスク一覧を取得"""
-        
+
         # フィルタリング
         filtered_tasks = []
         for task in self.tasks.values():
@@ -452,23 +452,23 @@ class ProgressService:
                 continue
             if symbol and task.symbol != symbol:
                 continue
-            
+
             filtered_tasks.append(task)
-        
+
         # ソート（作成日時降順）
         filtered_tasks.sort(key=lambda t: t.created_at, reverse=True)
-        
+
         # ページング
         total = len(filtered_tasks)
         start_idx = (page - 1) * limit
         end_idx = start_idx + limit
         page_tasks = filtered_tasks[start_idx:end_idx]
-        
+
         # ステータス集計
         status_summary = {}
         for task in self.tasks.values():
             status_summary[task.status] = status_summary.get(task.status, 0) + 1
-        
+
         return {
             "tasks": [task.to_dict() for task in page_tasks],
             "pagination": {
@@ -479,48 +479,48 @@ class ProgressService:
             },
             "summary": status_summary
         }
-    
+
     async def cancel_task(self, task_id: str) -> Dict:
         """タスクをキャンセル"""
-        
+
         if task_id not in self.tasks:
             raise ValueError(f"Task {task_id} not found")
-        
+
         task = self.tasks[task_id]
-        
+
         if task.status in [TaskStatus.COMPLETED, TaskStatus.ERROR, TaskStatus.CANCELLED]:
             raise ValueError(f"Cannot cancel task in status: {task.status}")
-        
+
         task.status = TaskStatus.CANCELLED
         task.completed_at = datetime.now()
         task.message = "タスクがキャンセルされました"
-        
+
         self.logger.info(f"Cancelled task {task_id}")
-        
+
         return task.to_dict()
-    
+
     def _start_cleanup_task(self):
         """古いタスクの自動削除タスクを開始"""
         asyncio.create_task(self._cleanup_old_tasks())
-    
+
     async def _cleanup_old_tasks(self):
         """24時間以上前のタスクを削除"""
         while True:
             try:
                 cutoff_time = datetime.now() - timedelta(hours=24)
-                
+
                 tasks_to_remove = []
                 for task_id, task in self.tasks.items():
                     if (task.completed_at or task.created_at) < cutoff_time:
                         tasks_to_remove.append(task_id)
-                
+
                 for task_id in tasks_to_remove:
                     del self.tasks[task_id]
                     self.logger.info(f"Cleaned up old task {task_id}")
-                
+
                 # 1時間ごとに実行
                 await asyncio.sleep(3600)
-                
+
             except Exception as e:
                 self.logger.error(f"Error in cleanup task: {str(e)}")
                 await asyncio.sleep(3600)
@@ -532,26 +532,26 @@ class ProgressService:
 # services/progress.py - 進捗通知ユーティリティ
 class ProgressNotifier:
     """進捗通知のためのヘルパークラス"""
-    
+
     def __init__(self, task_id: str, progress_service: ProgressService):
         self.task_id = task_id
         self.progress_service = progress_service
         self.last_update = datetime.now()
         self.update_interval = 1.0  # 1秒間隔で更新
-    
+
     async def update(
-        self, 
-        current: int, 
-        total: int, 
+        self,
+        current: int,
+        total: int,
         message: str = "",
         details: Optional[Dict] = None
     ):
         """進捗を更新（間隔制限付き）"""
-        
+
         now = datetime.now()
         if (now - self.last_update).total_seconds() < self.update_interval:
             return
-        
+
         await self.progress_service.update_progress(
             self.task_id,
             TaskStatus.RUNNING,
@@ -559,9 +559,9 @@ class ProgressNotifier:
             message=message or f"処理中... ({current}/{total})",
             processing_details=details
         )
-        
+
         self.last_update = now
-    
+
     async def complete(self, results: Optional[Dict] = None, message: str = "完了しました"):
         """完了通知"""
         await self.progress_service.update_progress(
@@ -570,7 +570,7 @@ class ProgressNotifier:
             message=message,
             results=results or {}
         )
-    
+
     async def error(self, error_message: str):
         """エラー通知"""
         await self.progress_service.update_progress(
@@ -583,24 +583,24 @@ class ProgressNotifier:
 # 使用例
 async def example_data_fetch_with_progress():
     """進捗通知付きのデータ取得例"""
-    
+
     progress_service = ProgressService()
-    
+
     # タスク作成
     task_id = await progress_service.create_task(
         "fetch_data",
         total_items=100,
         symbol="7203.T"
     )
-    
+
     notifier = ProgressNotifier(task_id, progress_service)
-    
+
     try:
         # 処理実行
         for i in range(100):
             # 何らかの処理
             await asyncio.sleep(0.1)
-            
+
             # 進捗通知
             await notifier.update(
                 current=i+1,
@@ -608,13 +608,13 @@ async def example_data_fetch_with_progress():
                 message=f"データ処理中... ({i+1}/100)",
                 details={"processing_rate": "10 items/sec"}
             )
-        
+
         # 完了通知
         await notifier.complete(
             results={"processed": 100, "success": 100},
             message="すべてのデータ処理が完了しました"
         )
-        
+
     except Exception as e:
         # エラー通知
         await notifier.error(f"処理中にエラーが発生しました: {str(e)}")
@@ -639,29 +639,29 @@ from abc import ABC, abstractmethod
 
 class NotificationServiceInterface(ABC):
     """Notification Service インターフェース"""
-    
+
     @abstractmethod
     async def create_task(self, task_type: str, total_items: int, **kwargs) -> str:
         pass
-    
+
     @abstractmethod
     async def update_progress(self, task_id: str, **kwargs) -> Dict:
         pass
-    
+
     @abstractmethod
     async def get_task_status(self, task_id: str) -> Optional[Dict]:
         pass
-    
+
     @abstractmethod
     async def health_check(self) -> Dict:
         pass
 
 class ProgressService(NotificationServiceInterface):
     """進捗管理実装（MVP時の内部実装）"""
-    
+
     async def handle_request(self, endpoint: str, method: str, data: dict):
         """統一リクエストハンドラ（将来のHTTP API用）"""
-        
+
         if endpoint == '/internal/create-task' and method == 'POST':
             return await self.create_task(
                 data['task_type'],
@@ -669,24 +669,24 @@ class ProgressService(NotificationServiceInterface):
                 symbol=data.get('symbol'),
                 metadata=data.get('metadata')
             )
-        
+
         elif endpoint.startswith('/internal/task/') and endpoint.endswith('/update') and method == 'PUT':
             task_id = endpoint.split('/')[-2]
             return await self.update_progress(task_id, **data)
-        
+
         elif endpoint.startswith('/internal/task/') and endpoint.endswith('/status') and method == 'GET':
             task_id = endpoint.split('/')[-2]
             return await self.get_task_status(task_id)
-        
+
         elif endpoint == '/internal/tasks' and method == 'GET':
             return await self.get_tasks_list(**data)
-        
+
         elif endpoint == '/internal/health' and method == 'GET':
             return await self.health_check()
-        
+
         else:
             raise ValueError(f"Unknown endpoint: {endpoint}")
-    
+
     async def health_check(self) -> Dict:
         """ヘルスチェック"""
         return {
@@ -712,16 +712,16 @@ import json
 class WebSocketManager:
     def __init__(self):
         self.connections = {}  # task_id -> list of websockets
-    
+
     async def add_connection(self, task_id: str, websocket):
         if task_id not in self.connections:
             self.connections[task_id] = []
         self.connections[task_id].append(websocket)
-    
+
     async def remove_connection(self, task_id: str, websocket):
         if task_id in self.connections:
             self.connections[task_id].remove(websocket)
-    
+
     async def notify_subscribers(self, task_id: str, message: Dict):
         if task_id in self.connections:
             disconnected = []
@@ -730,7 +730,7 @@ class WebSocketManager:
                     await websocket.send(json.dumps(message))
                 except websockets.exceptions.ConnectionClosed:
                     disconnected.append(websocket)
-            
+
             # 切断された接続を削除
             for websocket in disconnected:
                 self.connections[task_id].remove(websocket)
@@ -745,36 +745,36 @@ class RedisProgressService(ProgressService):
     def __init__(self, redis_url: str):
         super().__init__()
         self.redis = redis.from_url(redis_url)
-    
+
     async def create_task(self, **kwargs) -> str:
         task_id = await super().create_task(**kwargs)
-        
+
         # Redisに永続化
         task_data = self.tasks[task_id].to_dict()
         await self.redis.setex(
-            f"task:{task_id}", 
+            f"task:{task_id}",
             86400,  # 24時間
             json.dumps(task_data)
         )
-        
+
         return task_id
-    
+
     async def update_progress(self, task_id: str, **kwargs) -> Dict:
         result = await super().update_progress(task_id, **kwargs)
-        
+
         # Redisに更新を保存
         await self.redis.setex(
             f"task:{task_id}",
             86400,
             json.dumps(result)
         )
-        
+
         # Pub/Sub でリアルタイム通知
         await self.redis.publish(
             f"task_update:{task_id}",
             json.dumps(result)
         )
-        
+
         return result
 ```
 

@@ -2,8 +2,6 @@
 単体テスト: モデルクラスのテスト
 外部依存関係なし（データベース接続なし）
 """
-from datetime import datetime
-from unittest.mock import Mock
 
 from app.models.stock_data import StockData
 
@@ -17,9 +15,9 @@ class TestStockData:
             symbol="TEST.T",
             company_name="Test Company",
             current_price=1500.0,
-            currency="JPY"
+            currency="JPY",
         )
-        
+
         assert stock_data.symbol == "TEST.T"
         assert stock_data.company_name == "Test Company"
         assert stock_data.current_price == 1500.0
@@ -34,11 +32,11 @@ class TestStockData:
             currency="JPY",
             market_state="CLOSED",
             timezone="JST",
-            exchange="TSE"
+            exchange="TSE",
         )
-        
+
         result = stock_data.to_dict()
-        
+
         assert isinstance(result, dict)
         assert result["symbol"] == "TEST.T"
         assert result["company_name"] == "Test Company"

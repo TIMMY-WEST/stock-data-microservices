@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from typing import Any, Dict
 
 from sqlalchemy.dialects.postgresql import JSON
 
@@ -51,10 +52,10 @@ class StockData(db.Model):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<StockData {self.symbol}: {self.company_name}>"
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         """辞書形式でデータを返す"""
         return {
             "id": self.id,
@@ -107,10 +108,10 @@ class FetchLog(db.Model):
         backref=db.backref("fetch_logs", lazy=True),
     )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<FetchLog {self.task_id}: {self.symbol} - {self.status}>"
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         """辞書形式でデータを返す"""
         return {
             "id": self.id,

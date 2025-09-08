@@ -10,7 +10,7 @@ db: SQLAlchemy = SQLAlchemy()
 migrate = Migrate()
 
 
-def create_app(config_name="default"):
+def create_app(config_name: str = "default") -> Flask:
     """アプリケーションファクトリ"""
     app = Flask(__name__)
 

@@ -17,10 +17,10 @@ class ProgressService:
         try:
             if os.path.exists(self.progress_file):
                 with open(self.progress_file, "r", encoding="utf-8") as f:
-                    self.tasks = json.load(f)  # type: ignore[assignment]
+                    self.tasks = json.load(f)
         except Exception as e:
             print(f"プログレスファイル読み込みエラー: {e}")
-            self.tasks = {}  # type: ignore[assignment]
+            self.tasks = {}
 
     def _save_tasks(self) -> None:
         """タスクデータをファイルに保存"""

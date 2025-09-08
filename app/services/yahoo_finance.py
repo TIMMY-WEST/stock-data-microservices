@@ -8,7 +8,7 @@ import requests
 class YahooFinanceService:
     """Yahoo Finance API連携サービス"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.base_url = "https://query1.finance.yahoo.com"
         self.timeout = 30
 

@@ -44,14 +44,14 @@ CREATE TABLE stock_data (
     symbol VARCHAR(20) NOT NULL,                    -- 銘柄コード (例: 7203.T)
     date DATE NOT NULL,                            -- 取引日
     open DECIMAL(10, 2),                           -- 始値
-    high DECIMAL(10, 2),                           -- 高値  
+    high DECIMAL(10, 2),                           -- 高値
     low DECIMAL(10, 2),                            -- 安値
     close DECIMAL(10, 2) NOT NULL,                 -- 終値
     adj_close DECIMAL(10, 2),                      -- 調整後終値
     volume BIGINT,                                 -- 出来高
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 作成日時
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 更新日時
-    
+
     -- 制約
     CONSTRAINT uk_stock_data_symbol_date UNIQUE (symbol, date)
 );
@@ -89,7 +89,7 @@ CREATE TABLE fetch_logs (
     symbol VARCHAR(20),                            -- 対象銘柄コード
     status VARCHAR(20) NOT NULL,                   -- 処理結果 ('success', 'error', 'skipped')
     start_date DATE,                               -- 取得開始日
-    end_date DATE,                                 -- 取得終了日  
+    end_date DATE,                                 -- 取得終了日
     records_count INTEGER DEFAULT 0,              -- 取得レコード数
     error_message TEXT,                           -- エラーメッセージ
     processing_time_ms INTEGER,                   -- 処理時間（ミリ秒）
@@ -98,7 +98,7 @@ CREATE TABLE fetch_logs (
 
 -- インデックス
 CREATE INDEX idx_fetch_logs_fetch_id ON fetch_logs (fetch_id);
-CREATE INDEX idx_fetch_logs_symbol ON fetch_logs (symbol);  
+CREATE INDEX idx_fetch_logs_symbol ON fetch_logs (symbol);
 CREATE INDEX idx_fetch_logs_status ON fetch_logs (status);
 CREATE INDEX idx_fetch_logs_created_at ON fetch_logs (created_at);
 ```
@@ -133,7 +133,7 @@ Base = declarative_base()
 class StockData(Base):
     """株価データモデル"""
     __tablename__ = 'stock_data'
-    
+
     id = Column(Integer, primary_key=True)
     symbol = Column(String(20), nullable=False, index=True)
     date = Column(Date, nullable=False, index=True)
@@ -145,15 +145,15 @@ class StockData(Base):
     volume = Column(BigInteger)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     # ユニーク制約
     __table_args__ = (
         {'schema': None}
     )
-    
+
     def __repr__(self):
         return f"<StockData(symbol='{self.symbol}', date='{self.date}', close={self.close})>"
-    
+
     def to_dict(self):
         """辞書形式での出力"""
         return {
@@ -173,7 +173,7 @@ class StockData(Base):
 class FetchLog(Base):
     """取得ログモデル"""
     __tablename__ = 'fetch_logs'
-    
+
     id = Column(Integer, primary_key=True)
     fetch_id = Column(String(36), nullable=False, index=True)  # UUID string
     symbol = Column(String(20), index=True)
@@ -184,10 +184,10 @@ class FetchLog(Base):
     error_message = Column(Text)
     processing_time_ms = Column(Integer)
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
-    
+
     def __repr__(self):
         return f"<FetchLog(fetch_id='{self.fetch_id}', symbol='{self.symbol}', status='{self.status}')>"
-    
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -212,7 +212,7 @@ class FetchLog(Base):
 def save_stock_data(symbol: str, data: list, mode: str = 'overwrite'):
     """
     株価データを保存
-    
+
     Args:
         symbol: 銘柄コード
         data: 株価データリスト
@@ -229,7 +229,7 @@ def save_stock_data(symbol: str, data: list, mode: str = 'overwrite'):
                 ).first()
                 if existing:
                     continue
-            
+
             # データ保存（上書きモード）
             stock_data = StockData(
                 symbol=symbol,
@@ -242,9 +242,9 @@ def save_stock_data(symbol: str, data: list, mode: str = 'overwrite'):
                 volume=record.get('volume')
             )
             session.merge(stock_data)  # INSERT または UPDATE
-            
+
         session.commit()
-        
+
     except Exception as e:
         session.rollback()
         raise e
@@ -254,25 +254,25 @@ def save_stock_data(symbol: str, data: list, mode: str = 'overwrite'):
 
 #### 株価データの取得
 ```python
-def get_stock_data(symbol: str = None, start_date: date = None, end_date: date = None, 
+def get_stock_data(symbol: str = None, start_date: date = None, end_date: date = None,
                   page: int = 1, per_page: int = 100):
     """
     株価データを取得
-    
+
     Args:
         symbol: 銘柄コード（指定時は該当銘柄のみ）
         start_date: 開始日
         end_date: 終了日
         page: ページ番号
         per_page: 1ページあたりの件数
-    
+
     Returns:
         dict: {'data': [...], 'total': 件数, 'page': ページ, 'per_page': 件数}
     """
     session = Session()
-    
+
     query = session.query(StockData)
-    
+
     # フィルター適用
     if symbol:
         query = query.filter(StockData.symbol == symbol)
@@ -280,19 +280,19 @@ def get_stock_data(symbol: str = None, start_date: date = None, end_date: date =
         query = query.filter(StockData.date >= start_date)
     if end_date:
         query = query.filter(StockData.date <= end_date)
-    
+
     # 並び順
     query = query.order_by(StockData.symbol, StockData.date.desc())
-    
+
     # 総件数
     total = query.count()
-    
+
     # ページネーション
     offset = (page - 1) * per_page
     data = query.offset(offset).limit(per_page).all()
-    
+
     session.close()
-    
+
     return {
         'data': [item.to_dict() for item in data],
         'total': total,
@@ -305,7 +305,7 @@ def get_stock_data(symbol: str = None, start_date: date = None, end_date: date =
 ### 5.2 ログ記録
 
 ```python
-def log_fetch_result(fetch_id: str, symbol: str, status: str, 
+def log_fetch_result(fetch_id: str, symbol: str, status: str,
                     records_count: int = 0, error_message: str = None,
                     processing_time_ms: int = None):
     """取得結果をログに記録"""
@@ -419,7 +419,7 @@ run_migrations_online()
 
 **必須インデックス:**
 - `stock_data(symbol)` - 銘柄別検索用
-- `stock_data(date)` - 日付範囲検索用  
+- `stock_data(date)` - 日付範囲検索用
 - `stock_data(symbol, date)` - 複合検索用
 
 **将来追加予定:**
@@ -430,14 +430,14 @@ run_migrations_online()
 
 ```sql
 -- 良いクエリ例：インデックスを活用
-SELECT * FROM stock_data 
-WHERE symbol = '7203.T' 
-  AND date >= '2024-01-01' 
-ORDER BY date DESC 
+SELECT * FROM stock_data
+WHERE symbol = '7203.T'
+  AND date >= '2024-01-01'
+ORDER BY date DESC
 LIMIT 100;
 
 -- 避けるべきクエリ：フルスキャン発生
-SELECT * FROM stock_data 
+SELECT * FROM stock_data
 WHERE EXTRACT(YEAR FROM date) = 2024;  -- 関数使用でインデックス無効化
 ```
 

@@ -9,11 +9,11 @@ jobs:
   unit-integration-tests:
     if: github.base_ref == 'develop'
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
         python-version: ['3.12']
-        
+
     services:
       postgres:
         image: postgres:15
@@ -28,7 +28,7 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-          
+
       redis:
         image: redis:7
         options: >-
@@ -38,61 +38,61 @@ jobs:
           --health-retries 5
         ports:
           - 6379:6379
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
-        
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest-cov bandit safety black flake8 isort mypy
-        
+
     - name: Run Unit Tests
       run: |
         python -m pytest tests/unit/ -v --cov=app --cov-report=xml --cov-report=term
       env:
         DATABASE_URL: postgresql://test_user:test_password@localhost:5432/stock_test_db
         REDIS_URL: redis://localhost:6379
-        
+
     - name: Run Integration Tests
       run: |
         python -m pytest tests/integration/ -v
       env:
         DATABASE_URL: postgresql://test_user:test_password@localhost:5432/stock_test_db
         REDIS_URL: redis://localhost:6379
-        
+
     - name: Check code formatting and linting
       run: |
         black --check --diff app/
         isort --check-only --diff app/
         flake8 app/
         mypy app/
-        
+
     - name: Security scan
       run: |
         bandit -r app/ -f json -o bandit-report.json || true
         safety check --json --output safety-report.json || true
-        
+
     - name: Upload coverage reports
       uses: codecov/codecov-action@v3
       with:
         file: ./coverage.xml
-        
+
   # develop → main PR時: 全テストスイート実行
   full-test-suite:
     if: github.base_ref == 'main'
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
         python-version: ['3.12']
-        
+
     services:
       postgres:
         image: postgres:15
@@ -107,7 +107,7 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-          
+
       redis:
         image: redis:7
         options: >-
@@ -117,43 +117,43 @@ jobs:
           --health-retries 5
         ports:
           - 6379:6379
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
-        
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest-cov bandit safety black flake8 isort mypy playwright
         playwright install chromium
-        
+
     - name: Set up test database
       run: |
         # データベース初期化スクリプトがある場合
         # python scripts/init_test_db.py
       env:
         DATABASE_URL: postgresql://test_user:test_password@localhost:5432/stock_test_db
-        
+
     - name: Run Unit Tests
       run: |
         python -m pytest tests/unit/ -v --cov=app --cov-report=xml --cov-report=term
       env:
         DATABASE_URL: postgresql://test_user:test_password@localhost:5432/stock_test_db
         REDIS_URL: redis://localhost:6379
-        
+
     - name: Run Integration Tests
       run: |
         python -m pytest tests/integration/ -v
       env:
         DATABASE_URL: postgresql://test_user:test_password@localhost:5432/stock_test_db
         REDIS_URL: redis://localhost:6379
-        
+
     - name: Run E2E Tests
       run: |
         # アプリケーションをバックグラウンドで起動
@@ -164,19 +164,19 @@ jobs:
         DATABASE_URL: postgresql://test_user:test_password@localhost:5432/stock_test_db
         REDIS_URL: redis://localhost:6379
         FLASK_ENV: testing
-        
+
     - name: Code formatting and linting check
       run: |
         black --check --diff app/
         isort --check-only --diff app/
         flake8 app/
         mypy app/
-        
+
     - name: Security Tests (parallel)
       run: |
         bandit -r app/ -f json -o bandit-report.json || true
         safety check --json --output safety-report.json || true
-        
+
     - name: Performance Tests
       run: |
         # 基本的なパフォーマンステスト
@@ -184,12 +184,12 @@ jobs:
       env:
         DATABASE_URL: postgresql://test_user:test_password@localhost:5432/stock_test_db
         REDIS_URL: redis://localhost:6379
-        
+
     - name: Upload coverage reports
       uses: codecov/codecov-action@v3
       with:
         file: ./coverage.xml
-        
+
     - name: Upload test reports
       if: always()
       uses: actions/upload-artifact@v4

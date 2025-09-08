@@ -30,22 +30,22 @@
   /* Primary Colors */
   --color-primary: #007AFF;        /* System Blue */
   --color-primary-dark: #0056D6;   /* Darker Blue */
-  
+
   /* Background Colors */
   --color-bg-primary: #FFFFFF;     /* White */
   --color-bg-secondary: #F5F5F7;   /* Light Gray */
   --color-bg-tertiary: #E5E5EA;    /* Mid Gray */
-  
+
   /* Text Colors */
   --color-text-primary: #1D1D1F;   /* Nearly Black */
   --color-text-secondary: #86868B; /* Mid Gray */
   --color-text-tertiary: #C7C7CC;  /* Light Gray */
-  
+
   /* Status Colors */
   --color-success: #30D158;        /* Green */
   --color-error: #FF3B30;          /* Red */
   --color-warning: #FF9500;        /* Orange */
-  
+
   /* Surface Colors */
   --color-card: rgba(255, 255, 255, 0.8);
   --color-overlay: rgba(0, 0, 0, 0.4);
@@ -57,7 +57,7 @@
 ```css
 /* Font Stack (San Francisco風) */
 .font-system {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI',
                Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
@@ -102,7 +102,7 @@
   データ取得開始
 </button>
 
-<!-- Secondary Button -->  
+<!-- Secondary Button -->
 <button class="btn-secondary" type="button">
   キャンセル
 </button>
@@ -115,7 +115,7 @@
 <style>
 /* Button Base Styles */
 .btn-base {
-  @apply px-4 py-2 rounded-button font-medium transition-all duration-200 
+  @apply px-4 py-2 rounded-button font-medium transition-all duration-200
          focus:outline-none focus:ring-2 focus:ring-offset-2
          inline-flex items-center justify-center;
 }
@@ -144,10 +144,10 @@
 <!-- Text Input -->
 <div class="input-group">
   <label class="input-label" for="symbol">銘柄コード</label>
-  <input 
-    class="input-field" 
-    type="text" 
-    id="symbol" 
+  <input
+    class="input-field"
+    type="text"
+    id="symbol"
     placeholder="例: 7203.T"
     x-model="symbol">
   <p class="input-help">東証銘柄コードを入力してください</p>
@@ -174,7 +174,7 @@
 
 .input-field {
   @apply w-full px-3 py-2 border border-gray-300 rounded-input
-         focus:outline-none focus:ring-2 focus:ring-blue-500 
+         focus:outline-none focus:ring-2 focus:ring-blue-500
          focus:border-transparent transition-all duration-200
          bg-white text-gray-900;
 }
@@ -244,11 +244,11 @@
     <h4 class="progress-title">データ取得中...</h4>
     <span class="progress-percentage" x-text="`${progress}%`"></span>
   </div>
-  
+
   <div class="progress-bar">
     <div class="progress-fill" :style="`width: ${progress}%`"></div>
   </div>
-  
+
   <p class="progress-status" x-text="currentStatus"></p>
 </div>
 
@@ -274,7 +274,7 @@
 }
 
 .progress-fill {
-  @apply bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full 
+  @apply bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full
          transition-all duration-300 ease-out;
 }
 
@@ -296,10 +296,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Data Manager</title>
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Tailwind Config -->
     <script>
         tailwind.config = {
@@ -318,7 +318,7 @@
             }
         }
     </script>
-    
+
     <!-- Alpine.js -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
@@ -334,26 +334,26 @@
                 </h1>
             </div>
         </header>
-        
+
         <!-- Main Content -->
         <main class="max-w-6xl mx-auto px-4 py-8 space-y-8">
             <!-- Data Fetch Section -->
             <section class="bg-white rounded-card shadow-md p-6">
                 <h2 class="text-xl font-semibold text-gray-900 mb-6">データ取得</h2>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Symbol Input -->
                     <div class="input-group">
                         <label class="input-label" for="symbol">銘柄コード</label>
-                        <input 
-                            class="input-field" 
-                            type="text" 
-                            id="symbol" 
+                        <input
+                            class="input-field"
+                            type="text"
+                            id="symbol"
                             placeholder="例: 7203.T"
                             x-model="formData.symbol"
                             :disabled="isLoading">
                     </div>
-                    
+
                     <!-- Period Select -->
                     <div class="input-group">
                         <label class="input-label" for="period">取得期間</label>
@@ -364,33 +364,33 @@
                         </select>
                     </div>
                 </div>
-                
+
                 <!-- Action Button -->
                 <div class="mt-6">
-                    <button 
+                    <button
                         class="btn-primary"
                         @click="fetchStockData()"
                         :disabled="isLoading || !formData.symbol.trim()">
-                        
+
                         <svg x-show="!isLoading" class="w-4 h-4 mr-2" fill="none" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
                         </svg>
-                        
+
                         <svg x-show="isLoading" class="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24">
                             <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" class="opacity-25"/>
                             <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" class="opacity-75"/>
                         </svg>
-                        
+
                         <span x-text="isLoading ? '取得中...' : 'データ取得開始'"></span>
                     </button>
                 </div>
-                
+
                 <!-- Error Display -->
                 <div x-show="error" class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
                     <p class="text-sm text-red-800" x-text="error"></p>
                 </div>
             </section>
-            
+
             <!-- Progress Section -->
             <section x-show="isLoading">
                 <div class="progress-container">
@@ -398,25 +398,25 @@
                         <h4 class="progress-title">データ取得中...</h4>
                         <span class="progress-percentage" x-text="`${progress}%`"></span>
                     </div>
-                    
+
                     <div class="progress-bar">
                         <div class="progress-fill" :style="`width: ${progress}%`"></div>
                     </div>
-                    
+
                     <p class="progress-status" x-text="statusMessage"></p>
                 </div>
             </section>
-            
+
             <!-- Stock Data List -->
             <section class="bg-white rounded-card shadow-md p-6">
                 <h2 class="text-xl font-semibold text-gray-900 mb-6">取得済みデータ</h2>
-                
+
                 <!-- Loading State -->
                 <div x-show="stocks.loading" class="text-center py-8">
                     <div class="animate-spin inline-block w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full"></div>
                     <p class="mt-2 text-gray-600">データを読み込んでいます...</p>
                 </div>
-                
+
                 <!-- Empty State -->
                 <div x-show="!stocks.loading && stocks.data.length === 0" class="text-center py-12">
                     <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor">
@@ -425,7 +425,7 @@
                     <h3 class="mt-2 text-sm font-medium text-gray-900">データがありません</h3>
                     <p class="mt-1 text-sm text-gray-500">最初のデータを取得してください</p>
                 </div>
-                
+
                 <!-- Data Grid -->
                 <div x-show="!stocks.loading && stocks.data.length > 0" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                     <template x-for="stock in stocks.data" :key="stock.symbol">
@@ -448,22 +448,22 @@
                         </div>
                     </template>
                 </div>
-                
+
                 <!-- Pagination -->
                 <div x-show="stocks.pages > 1" class="mt-6 flex justify-center">
                     <nav class="flex items-center space-x-2">
-                        <button 
+                        <button
                             class="btn-secondary btn-sm"
                             @click="loadStocks(stocks.page - 1)"
                             :disabled="stocks.page <= 1">
                             前へ
                         </button>
-                        
+
                         <span class="text-sm text-gray-600">
                             Page <span x-text="stocks.page"></span> of <span x-text="stocks.pages"></span>
                         </span>
-                        
-                        <button 
+
+                        <button
                             class="btn-secondary btn-sm"
                             @click="loadStocks(stocks.page + 1)"
                             :disabled="stocks.page >= stocks.pages">
@@ -489,12 +489,12 @@ function stockApp() {
             symbol: '',
             period: '1y'
         },
-        
+
         isLoading: false,
         progress: 0,
         statusMessage: '',
         error: null,
-        
+
         stocks: {
             data: [],
             loading: false,
@@ -502,31 +502,31 @@ function stockApp() {
             pages: 1,
             total: 0
         },
-        
+
         // Lifecycle
         init() {
             console.log('Stock App initialized');
             this.loadStocks();
         },
-        
+
         // Methods
         async fetchStockData() {
             if (!this.formData.symbol.trim()) {
                 this.error = '銘柄コードを入力してください';
                 return;
             }
-            
+
             // 銘柄コードフォーマットチェック
             if (!this.validateSymbol(this.formData.symbol)) {
                 this.error = '正しい銘柄コード形式で入力してください (例: 7203.T)';
                 return;
             }
-            
+
             this.isLoading = true;
             this.progress = 0;
             this.error = null;
             this.statusMessage = 'データ取得を開始しています...';
-            
+
             try {
                 // データ取得API呼び出し
                 const response = await fetch('/api/fetch-data', {
@@ -539,20 +539,20 @@ function stockApp() {
                         period: this.formData.period
                     })
                 });
-                
+
                 if (!response.ok) {
                     const errorData = await response.json();
                     throw new Error(errorData.error || 'データ取得に失敗しました');
                 }
-                
+
                 const result = await response.json();
-                
+
                 // プログレス監視
                 await this.monitorProgress(result.fetch_id);
-                
+
                 // 完了後にリスト更新
                 await this.loadStocks();
-                
+
             } catch (error) {
                 console.error('Fetch error:', error);
                 this.error = error.message;
@@ -562,17 +562,17 @@ function stockApp() {
                 this.statusMessage = '';
             }
         },
-        
+
         async monitorProgress(fetchId) {
             return new Promise((resolve, reject) => {
                 const checkStatus = async () => {
                     try {
                         const response = await fetch(`/api/fetch-status?fetch_id=${fetchId}`);
                         const status = await response.json();
-                        
+
                         this.progress = status.progress?.percentage || 0;
                         this.statusMessage = status.current_status || '';
-                        
+
                         if (status.status === 'completed') {
                             this.statusMessage = 'データ取得が完了しました';
                             setTimeout(() => resolve(), 1000);
@@ -586,23 +586,23 @@ function stockApp() {
                         reject(error);
                     }
                 };
-                
+
                 checkStatus();
             });
         },
-        
+
         async loadStocks(page = 1) {
             this.stocks.loading = true;
-            
+
             try {
                 const response = await fetch(`/api/stocks?page=${page}&per_page=12`);
                 const data = await response.json();
-                
+
                 this.stocks.data = data.data || [];
                 this.stocks.page = data.page || 1;
                 this.stocks.pages = data.pages || 1;
                 this.stocks.total = data.total || 0;
-                
+
             } catch (error) {
                 console.error('Load stocks error:', error);
                 this.error = 'データの読み込みに失敗しました';
@@ -610,35 +610,35 @@ function stockApp() {
                 this.stocks.loading = false;
             }
         },
-        
+
         async deleteStock(symbol) {
             if (!confirm(`${symbol} のデータを削除しますか？`)) {
                 return;
             }
-            
+
             try {
                 const response = await fetch(`/api/stocks/${symbol}`, {
                     method: 'DELETE'
                 });
-                
+
                 if (!response.ok) {
                     throw new Error('削除に失敗しました');
                 }
-                
+
                 // リスト更新
                 await this.loadStocks();
-                
+
             } catch (error) {
                 console.error('Delete error:', error);
                 this.error = error.message;
             }
         },
-        
+
         viewStockDetail(symbol) {
             // 詳細表示（将来実装）
             alert(`${symbol} の詳細表示機能は今後実装予定です`);
         },
-        
+
         validateSymbol(symbol) {
             // 基本的な銘柄コードフォーマット検証
             const pattern = /^[0-9]{4}\.T$/;
@@ -655,7 +655,7 @@ function stockApp() {
 ```css
 /* Tailwind Default Breakpoints */
 /* sm: 640px */
-/* md: 768px */  
+/* md: 768px */
 /* lg: 1024px */
 /* xl: 1280px */
 /* 2xl: 1536px */
@@ -703,7 +703,7 @@ function stockApp() {
 // 画像の遅延読み込み
 function lazyLoadImages() {
     const images = document.querySelectorAll('img[data-src]');
-    
+
     const imageObserver = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -714,7 +714,7 @@ function lazyLoadImages() {
             }
         });
     });
-    
+
     images.forEach(img => imageObserver.observe(img));
 }
 ```
@@ -729,18 +729,18 @@ function virtualList() {
         visibleItems: [],
         itemHeight: 80,
         containerHeight: 400,
-        
+
         init() {
             this.updateVisibleItems();
         },
-        
+
         updateVisibleItems() {
             const startIndex = Math.floor(this.scrollTop / this.itemHeight);
             const endIndex = Math.min(
                 startIndex + Math.ceil(this.containerHeight / this.itemHeight) + 1,
                 this.items.length
             );
-            
+
             this.visibleItems = this.items.slice(startIndex, endIndex);
         }
     }
@@ -753,7 +753,7 @@ function virtualList() {
 
 ```html
 <!-- Focus Management -->
-<button 
+<button
     class="btn-primary"
     @keydown.enter="fetchStockData()"
     @keydown.space.prevent="fetchStockData()">
@@ -777,10 +777,10 @@ function virtualList() {
 
 ```html
 <!-- Progress Bar -->
-<div 
-    role="progressbar" 
-    aria-valuenow="65" 
-    aria-valuemin="0" 
+<div
+    role="progressbar"
+    aria-valuenow="65"
+    aria-valuemin="0"
     aria-valuemax="100"
     aria-label="データ取得進捗">
     <div class="progress-fill" style="width: 65%"></div>
@@ -798,14 +798,14 @@ function virtualList() {
 
 **基本機能:**
 - [ ] 銘柄コード入力・バリデーション
-- [ ] データ取得・プログレス表示  
+- [ ] データ取得・プログレス表示
 - [ ] 取得データ一覧表示
 - [ ] ページネーション
 - [ ] レスポンシブ表示
 
 **ブラウザ別:**
 - [ ] Chrome (最新版)
-- [ ] Firefox (最新版)  
+- [ ] Firefox (最新版)
 - [ ] Safari (最新版)
 - [ ] Edge (最新版)
 
@@ -820,20 +820,20 @@ function virtualList() {
 // Playwright E2E Test Example
 test('株価データ取得フロー', async ({ page }) => {
     await page.goto('/');
-    
+
     // 銘柄コード入力
     await page.fill('#symbol', '7203.T');
     await page.selectOption('#period', '1y');
-    
+
     // データ取得開始
     await page.click('button:has-text("データ取得開始")');
-    
+
     // プログレスバー表示確認
     await expect(page.locator('.progress-container')).toBeVisible();
-    
+
     // 完了まで待機
     await page.waitForSelector('.card', { timeout: 30000 });
-    
+
     // 結果確認
     await expect(page.locator('.card')).toContainText('7203.T');
 });
@@ -850,7 +850,7 @@ test('株価データ取得フロー', async ({ page }) => {
 - 基本的なアクセシビリティ
 - プログレス表示・エラーハンドリング
 
-### 🚀 **拡張準備** 
+### 🚀 **拡張準備**
 - コンポーネント化による再利用性
 - 仮想化対応（大量データ）
 - PWA対応準備

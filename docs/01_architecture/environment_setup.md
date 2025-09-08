@@ -21,7 +21,7 @@
 1. Python開発環境確認
 2. Claude Desktop インストール・設定
 
-【MCP環境構築】  
+【MCP環境構築】
 3. Claude MCP Server セットアップ
 4. Claude設定ファイル更新
 5. MCP接続確認
@@ -245,16 +245,16 @@ class StockDataMCPServer {
       switch (request.params.name) {
         case "project_status":
           return await this.getProjectStatus();
-        
+
         case "run_tests":
           return await this.runTests(request.params.arguments);
-          
+
         case "check_api_endpoints":
           return await this.checkApiEndpoints();
-          
+
         case "database_status":
           return await this.checkDatabaseStatus();
-          
+
         default:
           throw new Error(`Unknown tool: ${request.params.name}`);
       }
@@ -605,28 +605,28 @@ from datetime import timedelta
 
 class Config:
     """基本設定"""
-    
+
     # Flask 設定
     SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
-    
+
     # データベース設定
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL',
         'postgresql://stock_user:stock_password@localhost:5432/stock_db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = os.environ.get('FLASK_ENV') == 'development'
-    
+
     # Yahoo Finance 設定
     YAHOO_FINANCE_BASE_URL = os.environ.get('YAHOO_FINANCE_BASE_URL',
         'https://query1.finance.yahoo.com')
     YAHOO_FINANCE_TIMEOUT = int(os.environ.get('YAHOO_FINANCE_TIMEOUT', 30))
-    
+
     # CORS設定
     CORS_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
-    
+
     # アプリケーション設定
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
     JSON_SORT_KEYS = False
-    
+
     # ページネーション設定
     DEFAULT_PER_PAGE = 12
     MAX_PER_PAGE = 100
@@ -640,10 +640,10 @@ class ProductionConfig(Config):
     """本番環境設定"""
     DEBUG = False
     TESTING = False
-    
+
     # 本番環境専用設定
     SQLALCHEMY_ECHO = False
-    
+
 class TestingConfig(Config):
     """テスト環境設定"""
     TESTING = True
@@ -719,7 +719,7 @@ if not exist "mcp-server" (
     npm init -y
     npm install @modelcontextprotocol/sdk typescript @types/node
     npm install -g tsx
-    
+
     REM TypeScript設定作成
     echo { > tsconfig.json
     echo   "compilerOptions": { >> tsconfig.json
@@ -734,7 +734,7 @@ if not exist "mcp-server" (
     echo   }, >> tsconfig.json
     echo   "include": ["src/**/*"] >> tsconfig.json
     echo } >> tsconfig.json
-    
+
     REM MCP Server ソースコードを配置（手動で作成要）
     mkdir src
     echo ✏️  mcp-server/src/server.ts を作成してください
@@ -1053,7 +1053,7 @@ VS Code の推奨拡張機能・設定ファイルについては、**[開発者
 Claude チャットで以下のように支援を受けられます：
 ```
 💬 "プロジェクトの状態を確認してください"
-💬 "APIエンドポイントをチェックしてください"  
+💬 "APIエンドポイントをチェックしてください"
 💬 "データベースの状況を教えてください"
 💬 "テストを実行してください"
 ```

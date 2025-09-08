@@ -18,16 +18,16 @@ CREATE TABLE IF NOT EXISTS system_status (
 );
 
 -- 初期データ投入
-INSERT INTO system_status (service_name, status) 
+INSERT INTO system_status (service_name, status)
 VALUES ('database', 'initialized')
 ON CONFLICT DO NOTHING;
 
 -- 基本的なインデックス
-CREATE INDEX IF NOT EXISTS idx_system_status_service 
+CREATE INDEX IF NOT EXISTS idx_system_status_service
 ON system_status (service_name);
 
 -- データベース初期化完了ログ
-INSERT INTO system_status (service_name, status) 
+INSERT INTO system_status (service_name, status)
 VALUES ('database_init', 'completed')
 ON CONFLICT DO NOTHING;
 
@@ -38,9 +38,9 @@ GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO stock_user;
 GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO stock_user;
 
 -- デフォルト権限設定（新規テーブル用）
-ALTER DEFAULT PRIVILEGES IN SCHEMA public 
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
 GRANT ALL PRIVILEGES ON TABLES TO stock_user;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public 
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
 GRANT ALL PRIVILEGES ON SEQUENCES TO stock_user;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public 
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
 GRANT ALL PRIVILEGES ON FUNCTIONS TO stock_user;

@@ -9,11 +9,11 @@ on:
 jobs:
   regression-tests:
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
         python-version: ['3.12']
-        
+
     services:
       postgres:
         image: postgres:15
@@ -28,7 +28,7 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-          
+
       redis:
         image: redis:7
         options: >-
@@ -38,56 +38,56 @@ jobs:
           --health-retries 5
         ports:
           - 6379:6379
-    
+
     steps:
     - uses: actions/checkout@v4
       with:
         ref: develop  # developブランチで回帰テスト実行
-    
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
-        
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest-cov bandit safety playwright black flake8 isort mypy
         playwright install chromium
-        
+
     - name: Set up test database
       run: |
         # データベース初期化スクリプトがある場合
         # python scripts/init_test_db.py
       env:
         DATABASE_URL: postgresql://test_user:test_password@localhost:5432/stock_test_db
-        
+
     - name: Run Full Regression Test Suite
       run: |
         # 単体テスト
         python -m pytest tests/unit/ -v --cov=app --cov-report=xml --cov-report=term
-        
-        # 統合テスト  
+
+        # 統合テスト
         python -m pytest tests/integration/ -v
-        
+
         # E2Eテスト（アプリケーション起動）
         python run.py &
         APP_PID=$!
         sleep 15  # アプリ起動待ち
         python -m pytest tests/e2e/ -v
         kill $APP_PID  # アプリケーション停止
-        
+
       env:
         DATABASE_URL: postgresql://test_user:test_password@localhost:5432/stock_test_db
         REDIS_URL: redis://localhost:6379
         FLASK_ENV: testing
-        
+
     - name: Security Scan
       run: |
         bandit -r app/ -f json -o bandit-report.json || true
         safety check --json --output safety-report.json || true
-        
+
     - name: Performance Baseline Check
       run: |
         # パフォーマンスベースラインチェック
@@ -95,7 +95,7 @@ jobs:
       env:
         DATABASE_URL: postgresql://test_user:test_password@localhost:5432/stock_test_db
         REDIS_URL: redis://localhost:6379
-        
+
     - name: Upload test results
       if: always()
       uses: actions/upload-artifact@v4
@@ -105,7 +105,7 @@ jobs:
           bandit-report.json
           safety-report.json
           coverage.xml
-          
+
     - name: Notify on failure
       if: failure()
       run: |

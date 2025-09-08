@@ -209,7 +209,7 @@ class ServiceClient:
         self.financial_data_url = current_app.config['FINANCIAL_DATA_SERVICE_URL']
         self.data_mgmt_url = current_app.config['DATA_MANAGEMENT_SERVICE_URL']
         self.notification_url = current_app.config['NOTIFICATION_SERVICE_URL']
-    
+
     async def call_financial_data_service(self, endpoint, method='GET', data=None):
         """Financial Data Serviceへのリクエスト"""
         if self.financial_data_url == 'internal':
@@ -230,22 +230,22 @@ async def fetch_data():
     """株価データ取得開始"""
     try:
         data = request.get_json()
-        
+
         # バリデーション
         errors = validate_fetch_request(data)
         if errors:
             return error_response('VALIDATION_ERROR', errors), 422
-        
+
         # Financial Data Serviceに転送
         client = ServiceClient()
         result = await client.call_financial_data_service(
-            '/internal/fetch-stock-data', 
-            'POST', 
+            '/internal/fetch-stock-data',
+            'POST',
             data
         )
-        
+
         return success_response(result, 'データ取得を開始しました')
-        
+
     except Exception as e:
         return error_response('INTERNAL_ERROR', str(e)), 500
 ```
@@ -285,17 +285,17 @@ async def call_service_with_fallback(service_call):
         return await service_call()
     except httpx.ConnectError:
         return error_response(
-            'SERVICE_UNAVAILABLE', 
+            'SERVICE_UNAVAILABLE',
             'サービスに接続できません'
         ), 503
     except httpx.TimeoutException:
         return error_response(
-            'SERVICE_TIMEOUT', 
+            'SERVICE_TIMEOUT',
             'サービスがタイムアウトしました'
         ), 408
     except Exception as e:
         return error_response(
-            'INTERNAL_ERROR', 
+            'INTERNAL_ERROR',
             f'内部エラーが発生しました: {str(e)}'
         ), 500
 ```
@@ -311,13 +311,13 @@ import os
 class Config:
     """基本設定"""
     SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-key')
-    
+
     # CORS設定
     CORS_ORIGINS = ['http://localhost:8000']
-    
+
     # サービス間通信タイムアウト
     SERVICE_TIMEOUT = 30
-    
+
     # ログレベル
     LOG_LEVEL = 'INFO'
 
@@ -368,12 +368,12 @@ from abc import ABC, abstractmethod
 
 class BaseService(ABC):
     """マイクロサービス基底クラス"""
-    
+
     @abstractmethod
     async def handle_request(self, endpoint: str, method: str, data: dict):
         """リクエスト処理の統一インターフェース"""
         pass
-    
+
     @abstractmethod
     def health_check(self) -> dict:
         """ヘルスチェックの統一インターフェース"""

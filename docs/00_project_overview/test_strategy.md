@@ -42,7 +42,7 @@
             │   (TestContainers)   │    20-30 tests
             └──────────────────────┘
           ┌──────────────────────────┐
-          │     Unit Tests           │  ← 各サービス内のロジック  
+          │     Unit Tests           │  ← 各サービス内のロジック
           │     (pytest)             │    100+ tests
           └──────────────────────────┘
 ```
@@ -95,7 +95,7 @@
 - **制限系**: API制限レート、タイムアウト、大量データ処理
 - **データ品質**: 取得データの形式・範囲・完整性検証
 
-### 4.2 Data Management Service  
+### 4.2 Data Management Service
 **主な責務**: データベース操作・データ管理
 
 #### テスト観点
@@ -156,7 +156,7 @@
 ```yaml
 自動化対象:
 - 単体テスト: 100% 自動化
-- 統合テスト: 70% 自動化  
+- 統合テスト: 70% 自動化
 - E2E テスト: 50% 自動化（重要パスのみ）
 ```
 
@@ -282,9 +282,9 @@ def test_database():
     # テスト用DBの作成
     engine = create_engine("postgresql://test:test@localhost/test_db")
     Base.metadata.create_all(engine)
-    
+
     yield engine
-    
+
     # テスト後のクリーンアップ
     Base.metadata.drop_all(engine)
 
@@ -331,19 +331,19 @@ from locust import HttpUser, task, between
 
 class StockDataUser(HttpUser):
     wait_time = between(1, 5)
-    
+
     @task(3)
     def fetch_single_stock(self):
         """単一銘柄取得（頻度高）"""
-        self.client.post("/api/fetch-data", 
+        self.client.post("/api/fetch-data",
                         json={"symbol": "7203.T", "period": "1y"})
-    
+
     @task(1)
     def fetch_multiple_stocks(self):
         """複数銘柄取得（頻度低）"""
         self.client.post("/api/fetch-data",
                         json={"symbols": ["7203.T", "6758.T"], "period": "1y"})
-    
+
     @task(2)
     def get_stocks_list(self):
         """株価一覧取得"""
@@ -389,7 +389,7 @@ from app.models import db
 def app():
     """テスト用アプリケーション"""
     app = create_app('testing')
-    
+
     with app.app_context():
         db.create_all()
         yield app
@@ -459,7 +459,7 @@ services:
 
 #### コードカバレッジ
 - **Unit Tests**: 90%以上
-- **Integration Tests**: 80%以上  
+- **Integration Tests**: 80%以上
 - **E2E Tests**: 60%以上（主要パス）
 
 #### 機能カバレッジ
@@ -477,10 +477,10 @@ services:
 
 このテスト戦略では以下を実現しています：
 
-✅ **包括的テスト設計**: Unit → Integration → E2E の段階的テスト  
-✅ **自動化重視**: CI/CD パイプラインでの完全自動化  
-✅ **アジャイル対応**: Sprint ごとの段階的テスト拡張  
-✅ **品質保証**: カバレッジ・パフォーマンス・セキュリティの統合的品質管理  
+✅ **包括的テスト設計**: Unit → Integration → E2E の段階的テスト
+✅ **自動化重視**: CI/CD パイプラインでの完全自動化
+✅ **アジャイル対応**: Sprint ごとの段階的テスト拡張
+✅ **品質保証**: カバレッジ・パフォーマンス・セキュリティの統合的品質管理
 ✅ **実用性重視**: 実際の開発で価値のあるテストに集中
 
 **次のアクション**:

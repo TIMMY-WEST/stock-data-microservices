@@ -161,7 +161,7 @@ class BaseService(ABC):
 # 設定による切り替え
 class DevelopmentConfig:
     FINANCIAL_DATA_SERVICE_URL = 'internal'  # MVP時
-    
+
 class ProductionConfig:
     FINANCIAL_DATA_SERVICE_URL = 'http://financial-data:8001'  # マイクロサービス時
 ```
@@ -173,14 +173,14 @@ class ProductionConfig:
 - PostgreSQL のみ
 - 基本機能実装
 
-### Phase 2: 機能拡張  
+### Phase 2: 機能拡張
 - Redis 追加 (キャッシュ・タスクキュー)
 - Excel ファイル処理機能
 - プログレス表示強化
 
 ### Phase 3: マイクロサービス分離
 - services/ フォルダを独立サービス化
-- Docker コンテナ化  
+- Docker コンテナ化
 - API Gateway 独立
 
 ### Phase 4: スケーリング対応
@@ -211,7 +211,7 @@ class ProductionConfig:
 ## 7. MVP品質要件
 
 - **動作性**: 基本機能が確実に動作すること
-- **保守性**: コードが理解しやすく修正しやすいこと  
+- **保守性**: コードが理解しやすく修正しやすいこと
 - **拡張性**: 将来の機能追加が容易であること
 - **性能**: 基本的な応答性（レスポンス時間 < 5秒）
 

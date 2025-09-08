@@ -33,5 +33,5 @@ pre-commit==3.6.0
 
 # 型スタブパッケージ
 types-requests==2.31.0.10
-types-Flask-Cors==4.0.0.4
+types-Flask-Cors==6.0.0.20250809
 types-Flask-Migrate==4.0.0.7

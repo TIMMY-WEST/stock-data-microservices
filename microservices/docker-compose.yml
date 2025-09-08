@@ -1,0 +1,134 @@
+version: '3.8'
+
+services:
+  # API Gateway Service
+  api-gateway:
+    build:
+      context: ./api_gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - FLASK_DEBUG=true
+      - FINANCIAL_DATA_INTERNAL_URL=http://financial-data:8001
+      - DATA_MANAGEMENT_INTERNAL_URL=http://data-management:8002
+      - NOTIFICATION_INTERNAL_URL=http://notification:8003
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:8080
+    volumes:
+      - ./api_gateway:/app
+      - ./logs:/app/logs
+    depends_on:
+      - financial-data
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Financial Data Service
+  financial-data:
+    build:
+      context: ./financial_data
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    environment:
+      - ENVIRONMENT=development
+      - FLASK_DEBUG=true
+      - YAHOO_TIMEOUT=30
+      - MAX_CONCURRENT_TASKS=10
+      - RATE_LIMITING_ENABLED=false
+    volumes:
+      - ./financial_data:/app
+      - ./logs:/app/logs
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/internal/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Data Management Service (placeholder)
+  data-management:
+    image: nginx:alpine
+    ports:
+      - "8002:80"
+    volumes:
+      - ./data_management/static:/usr/share/nginx/html
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    command: >
+      sh -c "echo 'Data Management Service placeholder' > /usr/share/nginx/html/index.html &&
+             nginx -g 'daemon off;'"
+
+  # Notification Service (placeholder)
+  notification:
+    image: nginx:alpine
+    ports:
+      - "8003:80"
+    volumes:
+      - ./notification/static:/usr/share/nginx/html
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    command: >
+      sh -c "echo 'Notification Service placeholder' > /usr/share/nginx/html/index.html &&
+             nginx -g 'daemon off;'"
+
+  # Redis (for caching and task queue)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # PostgreSQL (for data persistence)
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=stock_data
+      - POSTGRES_USER=stock_user
+      - POSTGRES_PASSWORD=stock_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stock_user -d stock_data"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  microservices-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  redis_data:
+    driver: local
+  postgres_data:
+    driver: local

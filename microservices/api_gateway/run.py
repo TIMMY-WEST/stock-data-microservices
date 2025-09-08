@@ -6,13 +6,14 @@ API Gateway Service 起動スクリプト
 import logging
 import os
 import sys
+from typing import Any
 
 from config import get_config
 
 from app import create_app
 
 
-def setup_logging(config):
+def setup_logging(config: Any) -> None:
     """ログ設定"""
     logging.basicConfig(
         level=getattr(logging, config.LOG_LEVEL),
@@ -26,7 +27,7 @@ def setup_logging(config):
     )
 
 
-def main():
+def main() -> None:
     """メイン関数"""
     try:
         # 環境変数から設定を取得

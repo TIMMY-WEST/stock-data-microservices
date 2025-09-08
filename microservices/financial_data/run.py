@@ -8,13 +8,14 @@ import os
 import sys
 import threading
 import time
+from typing import Any, List
 
 from config import get_config
 
-from app import FinancialDataService
+from .app import FinancialDataService
 
 
-def setup_logging(config):
+def setup_logging(config: Any) -> None:
     """ログ設定"""
     logging.basicConfig(
         level=getattr(logging, config.LOG_LEVEL),
@@ -28,7 +29,7 @@ def setup_logging(config):
     )
 
 
-def cleanup_old_tasks(service, config):
+def cleanup_old_tasks(service: FinancialDataService, config: Any) -> None:
     """古いタスクのクリーンアップ"""
     logger = logging.getLogger("cleanup")
 
@@ -45,7 +46,12 @@ def cleanup_old_tasks(service, config):
         time.sleep(config.get_task_config()["cleanup_interval"])
 
 
-def _find_expired_tasks(service, current_time, task_timeout, logger):
+def _find_expired_tasks(
+    service: FinancialDataService,
+    current_time: float,
+    task_timeout: int,
+    logger: logging.Logger,
+) -> List[str]:
     """期限切れタスクを探す"""
     tasks_to_remove = []
     for task_id, task_info in service.active_tasks.items():
@@ -58,7 +64,9 @@ def _find_expired_tasks(service, current_time, task_timeout, logger):
     return tasks_to_remove
 
 
-def _is_task_expired(task_end_time, current_time, task_timeout, logger):
+def _is_task_expired(
+    task_end_time: str, current_time: float, task_timeout: int, logger: logging.Logger
+) -> bool:
     """タスクが期限切れかチェック"""
     from datetime import datetime
 
@@ -71,7 +79,9 @@ def _is_task_expired(task_end_time, current_time, task_timeout, logger):
         return False
 
 
-def _remove_expired_tasks(service, tasks_to_remove, logger):
+def _remove_expired_tasks(
+    service: FinancialDataService, tasks_to_remove: List[str], logger: logging.Logger
+) -> None:
     """期限切れタスクを削除"""
     for task_id in tasks_to_remove:
         del service.active_tasks[task_id]
@@ -80,7 +90,7 @@ def _remove_expired_tasks(service, tasks_to_remove, logger):
         logger.info(f"Cleaned up {len(tasks_to_remove)} old tasks")
 
 
-def main():
+def main() -> None:
     """メイン関数"""
     try:
         # 環境変数から設定を取得

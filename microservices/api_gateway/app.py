@@ -3,7 +3,7 @@ import os
 from typing import Any, Dict
 
 import requests
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, Response, jsonify, render_template, request
 from flask_cors import CORS
 
 # ログ設定
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class APIGateway:
-    def __init__(self):
+    def __init__(self) -> None:
         self.app = Flask(__name__)
         CORS(self.app)
 
@@ -25,31 +25,31 @@ class APIGateway:
 
         self._setup_routes()
 
-    def _setup_routes(self):
+    def _setup_routes(self) -> None:
         """ルーティング設定"""
         self._setup_frontend_routes()
         self._setup_api_routes()
         self._setup_health_routes()
 
-    def _setup_frontend_routes(self):
+    def _setup_frontend_routes(self) -> None:
         """フロントエンド関連ルート設定"""
 
         @self.app.route("/")
-        def index():
+        def index() -> str:
             """メイン画面の配信"""
             return render_template("index.html")
 
-    def _setup_api_routes(self):
+    def _setup_api_routes(self) -> None:
         """API関連ルート設定"""
         self._setup_fetch_route()
         self._setup_status_route()
         self._setup_stocks_route()
 
-    def _setup_fetch_route(self):
+    def _setup_fetch_route(self) -> None:
         """データ取得ルート設定"""
 
         @self.app.route("/api/fetch-data", methods=["POST"])
-        def fetch_data():
+        def fetch_data() -> Response | tuple[Response, int]:
             """株価データ取得開始（Financial Data Serviceに転送）"""
             try:
                 data = request.get_json()
@@ -66,11 +66,11 @@ class APIGateway:
                 logger.error(f"データ取得エラー: {e}")
                 return jsonify({"success": False, "error": "データ取得に失敗しました"}), 500
 
-    def _setup_status_route(self):
+    def _setup_status_route(self) -> None:
         """ステータス確認ルート設定"""
 
         @self.app.route("/api/fetch-status", methods=["GET"])
-        def fetch_status():
+        def fetch_status() -> Response | tuple[Response, int]:
             """データ取得進捗確認（Notification Serviceに転送）"""
             try:
                 fetch_id = request.args.get("fetch_id")
@@ -87,11 +87,11 @@ class APIGateway:
                 logger.error(f"進捗確認エラー: {e}")
                 return jsonify({"success": False, "error": "進捗確認に失敗しました"}), 500
 
-    def _setup_stocks_route(self):
+    def _setup_stocks_route(self) -> None:
         """株価データ一覧ルート設定"""
 
         @self.app.route("/api/stocks", methods=["GET"])
-        def get_stocks():
+        def get_stocks() -> Response | tuple[Response, int]:
             """取得済み株価データ一覧（Data Management Serviceに転送）"""
             try:
                 params = {
@@ -107,11 +107,11 @@ class APIGateway:
                 logger.error(f"株価データ取得エラー: {e}")
                 return jsonify({"success": False, "error": "株価データ取得に失敗しました"}), 500
 
-    def _setup_health_routes(self):
+    def _setup_health_routes(self) -> None:
         """ヘルスチェック関連ルート設定"""
 
         @self.app.route("/health", methods=["GET"])
-        def health_check():
+        def health_check() -> Response | tuple[Response, int]:
             """システム全体の稼働状況確認"""
             try:
                 services_status = self._check_all_services_health()
@@ -129,7 +129,7 @@ class APIGateway:
                 logger.error(f"ヘルスチェックエラー: {e}")
                 return jsonify({"success": False, "error": "ヘルスチェックに失敗しました"}), 500
 
-    def _check_all_services_health(self):
+    def _check_all_services_health(self) -> Dict[str, str]:
         """全サービスのヘルスチェック"""
         services_status = {}
         for service_name, url in self.service_urls.items():
@@ -171,18 +171,19 @@ class APIGateway:
                 else:
                     response = requests.get(url, params=params, timeout=30)
 
-                return response.json()
+                result: Dict[str, Any] = response.json()
+                return result
             except Exception as e:
                 logger.error(f"サービス転送エラー ({service_name}): {e}")
                 raise
 
-    def run(self, host="0.0.0.0", port=8000, debug=False):
+    def run(self, host: str = "0.0.0.0", port: int = 8000, debug: bool = False) -> None:
         """アプリケーション起動"""
         logger.info(f"API Gateway starting on {host}:{port}")
         self.app.run(host=host, port=port, debug=debug)
 
 
-def create_app():
+def create_app() -> Flask:
     """アプリケーションファクトリ関数"""
     gateway = APIGateway()
     return gateway.app

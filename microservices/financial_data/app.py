@@ -3,37 +3,40 @@ import threading
 import time
 import uuid
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import pandas as pd
 import yfinance as yf
-from flask import Flask, jsonify, request
+from flask import Flask, Response, jsonify, request
 
 # ログ設定
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# パブリックAPI
+__all__ = ["FinancialDataService", "create_app"]
+
 
 class FinancialDataService:
-    def __init__(self):
+    def __init__(self) -> None:
         self.app = Flask(__name__)
 
         # アクティブなタスクを管理
-        self.active_tasks = {}
+        self.active_tasks: Dict[str, Dict[str, Any]] = {}
 
         self._setup_routes()
 
-    def _setup_routes(self):
+    def _setup_routes(self) -> None:
         """ルーティング設定"""
         self._setup_data_routes()
         self._setup_health_routes()
         self._setup_task_routes()
 
-    def _setup_data_routes(self):
+    def _setup_data_routes(self) -> None:
         """データ取得関連ルート設定"""
 
         @self.app.route("/internal/fetch-stock-data", methods=["POST"])
-        def fetch_stock_data():
+        def fetch_stock_data() -> Response | tuple[Response, int]:
             """Yahoo Finance から株価データを取得"""
             try:
                 data = request.get_json()
@@ -65,11 +68,11 @@ class FinancialDataService:
                 logger.error(f"データ取得開始エラー: {e}")
                 return jsonify({"success": False, "error": "データ取得の開始に失敗しました"}), 500
 
-    def _setup_health_routes(self):
+    def _setup_health_routes(self) -> None:
         """ヘルスチェック関連ルート設定"""
 
         @self.app.route("/internal/health", methods=["GET"])
-        def health_check():
+        def health_check() -> Response | tuple[Response, int]:
             """サービスの稼働状況とYahoo Finance接続確認"""
             try:
                 yahoo_status = self._check_yahoo_finance_connection()
@@ -88,11 +91,11 @@ class FinancialDataService:
                 logger.error(f"ヘルスチェックエラー: {e}")
                 return jsonify({"success": False, "error": "ヘルスチェックに失敗しました"}), 500
 
-    def _setup_task_routes(self):
+    def _setup_task_routes(self) -> None:
         """タスク管理関連ルート設定"""
 
         @self.app.route("/internal/task/<task_id>/status", methods=["GET"])
-        def get_task_status(task_id):
+        def get_task_status(task_id: str) -> Response | tuple[Response, int]:
             """タスクの進捗状況を取得"""
             try:
                 if task_id not in self.active_tasks:
@@ -103,7 +106,9 @@ class FinancialDataService:
                 logger.error(f"タスク状況取得エラー: {e}")
                 return jsonify({"success": False, "error": "タスク状況の取得に失敗しました"}), 500
 
-    def _validate_fetch_request(self, data):
+    def _validate_fetch_request(
+        self, data: Dict[str, Any]
+    ) -> Optional[tuple[Response, int]]:
         """データ取得リクエストのバリデーション"""
         required_fields = ["symbol", "period"]
         for field in required_fields:
@@ -139,7 +144,7 @@ class FinancialDataService:
             )
         return None
 
-    def _start_background_fetch(self, fetch_id, symbol, period):
+    def _start_background_fetch(self, fetch_id: str, symbol: str, period: str) -> None:
         """バックグラウンドでデータ取得開始"""
         thread = threading.Thread(
             target=self._fetch_data_background, args=(fetch_id, symbol, period)
@@ -147,7 +152,7 @@ class FinancialDataService:
         thread.daemon = True
         thread.start()
 
-    def _fetch_data_background(self, fetch_id: str, symbol: str, period: str):
+    def _fetch_data_background(self, fetch_id: str, symbol: str, period: str) -> None:
         """バックグラウンドでのデータ取得処理"""
         try:
             # タスク情報を初期化
@@ -285,13 +290,13 @@ class FinancialDataService:
                 "last_check": datetime.now().isoformat(),
             }
 
-    def run(self, host="0.0.0.0", port=8001, debug=False):
+    def run(self, host: str = "0.0.0.0", port: int = 8001, debug: bool = False) -> None:
         """アプリケーション起動"""
         logger.info(f"Financial Data Service starting on {host}:{port}")
         self.app.run(host=host, port=port, debug=debug)
 
 
-def create_app():
+def create_app() -> Flask:
     """アプリケーションファクトリ"""
     service = FinancialDataService()
     return service.app
